@@ -1,0 +1,23 @@
+:root{--bg:#F3F0EA;--ink:#1A1917;--muted:#6E6C67;--line:#E4E0D8;--card:#fff;
+  --serif:"Songti SC","STSong","Noto Serif SC","Noto Serif CJK SC",serif;
+  --sans:-apple-system,"PingFang SC","Hiragino Sans GB","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+a{color:inherit}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto;padding:0 clamp(18px,5vw,40px)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.back{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px 0 10px;background:var(--card);box-shadow:0 0 0 2px var(--ink);text-decoration:none;font-weight:600;font-size:14px}
+.brand{font-family:var(--serif);font-weight:700;letter-spacing:.06em;text-decoration:none}
+.head{padding:36px 0 22px;display:flex;align-items:center;gap:16px}
+.badge{flex:none;width:60px;height:60px;display:flex;align-items:center;justify-content:center;background:var(--b);color:var(--c);font:800 18px ui-monospace,Menlo,Consolas,monospace;box-shadow:0 0 0 3px var(--c)}
+h1{font-family:var(--serif);font-size:clamp(26px,5vw,36px);letter-spacing:.04em}
+.lead{color:var(--muted);font-size:15px}
+.ph{margin-top:8px;padding:28px 20px;border:2px dashed #CFC8BB;color:var(--muted);text-align:center;font-size:14px}
+.list{display:flex;flex-direction:column;gap:12px;padding-bottom:48px}
+.item{display:flex;align-items:stretch;min-height:72px;background:var(--card);box-shadow:0 0 0 2px var(--line);text-decoration:none}
+.item:hover{box-shadow:0 0 0 2px var(--c)}
+.chip{flex:0 0 84px;display:flex;align-items:center;justify-content:center;background:var(--cover);color:var(--cover-ink);font-weight:700;font-size:18px;text-align:center;padding:0 6px;line-height:1.1}
+.ib{padding:12px 16px;min-width:0;overflow:hidden}
+.it{font-weight:600}
+.im{display:block;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

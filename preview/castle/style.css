@@ -1,0 +1,127 @@
+/* 与「Duang 的点读卡」同一套暖米底、墨色与科目色 */
+:root{
+  --bg:#F3F0EA; --plate:#EBE6DC; --ink:#1A1917; --muted:#6E6C67; --line:#E4E0D8; --card:#FFFFFF;
+  --serif:"Songti SC","STSong","Noto Serif SC","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --sans:-apple-system,"PingFang SC","Hiragino Sans GB","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+  --pad-x:clamp(18px,5vw,48px);
+  --px:3px; /* 像素描边粗细 */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.55;min-height:100vh}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding-left:var(--pad-x);padding-right:var(--pad-x)}
+
+.top{display:flex;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:6px;position:relative;z-index:3}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+.brand svg{width:34px;height:auto}
+.brand b{font-family:var(--serif);font-weight:700;font-size:21px;letter-spacing:.06em}
+.skip{font-size:13px;color:var(--muted);text-decoration:none;padding:10px 0 10px 12px}
+.skip:hover{color:var(--ink)}
+
+/* 城堡舞台 */
+.stage{position:relative;height:min(76vh,720px);min-height:430px;max-width:1080px;margin:0 auto;overflow:hidden;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;outline:none}
+.stage.dragging{cursor:grabbing}
+.stage:focus-visible{box-shadow:inset 0 0 0 2px var(--ink)}
+#castle{position:absolute;inset:0;width:100%;height:100%;display:block}
+@media(min-width:900px){#castle{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}}
+/* 远景：淡暖天色、像素云、远山剪影、小鸟（都在画布后面，纯 CSS） */
+.bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14%,#000 86%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 5%,#000 95%,transparent 100%)}
+.bg-sky{position:absolute;inset:0;background:linear-gradient(180deg,#F3F0EA 0%,#F7EEDF 18%,#F6EFE4 48%,#F3F0EA 72%)}
+.bg-far{position:absolute;left:0;bottom:36%;width:calc(100% + 1200px);height:120px;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent 100%);mask-image:linear-gradient(180deg,#000 55%,transparent 100%);background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22600%22%20height%3D%22120%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M0%20120%20V70%20H24%20V62%20H48%20V66%20H72%20V70%20H96%20V62%20H120%20V58%20H144%20V62%20H168%20V62%20H192%20V70%20H216%20V70%20H240%20V58%20H264%20V62%20H288%20V50%20H312%20V62%20H336%20V62%20H360%20V58%20H384%20V62%20H408%20V54%20H432%20V46%20H456%20V54%20H480%20V54%20H504%20V58%20H528%20V70%20H552%20V70%20H576%20V70%20H600%20V70%20H624%20V120%20Z%22%20fill%3D%22%23E2E6E7%22/%3E%3Cpath%20d%3D%22M0%20120%20V100%20H16%20V100%20H32%20V100%20H48%20V96%20H64%20V92%20H80%20V84%20H96%20V76%20H112%20V88%20H128%20V96%20H144%20V84%20H160%20V80%20H176%20V84%20H192%20V84%20H208%20V88%20H224%20V76%20H240%20V72%20H256%20V76%20H272%20V80%20H288%20V88%20H304%20V76%20H320%20V84%20H336%20V84%20H352%20V76%20H368%20V84%20H384%20V84%20H400%20V92%20H416%20V92%20H432%20V84%20H448%20V76%20H464%20V68%20H480%20V66%20H496%20V66%20H512%20V66%20H528%20V70%20H544%20V82%20H560%20V86%20H576%20V74%20H592%20V100%20H616%20V120%20Z%22%20fill%3D%22%23D8DFDF%22/%3E%3C/svg%3E") repeat-x 0 100%/600px 120px;opacity:.9;will-change:transform}
+.bg-peaks{position:absolute;left:0;bottom:27%;width:calc(100% + 1440px);height:200px;opacity:.95;will-change:transform;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22720%22%20height%3D%22200%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M0%20200%20V120%20H8%20V120%20H16%20V120%20H24%20V96%20H32%20V88%20H40%20V72%20H48%20V56%20H56%20V56%20H64%20V64%20H72%20V72%20H80%20V88%20H88%20V104%20H96%20V120%20H104%20V120%20H112%20V128%20H120%20V144%20H128%20V160%20H136%20V160%20H144%20V168%20H152%20V152%20H160%20V144%20H168%20V136%20H176%20V120%20H184%20V104%20H192%20V96%20H200%20V88%20H208%20V64%20H216%20V72%20H224%20V48%20H232%20V40%20H240%20V16%20H248%20V24%20H256%20V32%20H264%20V48%20H272%20V48%20H280%20V64%20H288%20V80%20H296%20V88%20H304%20V104%20H312%20V120%20H320%20V136%20H328%20V128%20H336%20V152%20H344%20V168%20H352%20V160%20H360%20V152%20H368%20V144%20H376%20V136%20H384%20V120%20H392%20V112%20H400%20V96%20H408%20V96%20H416%20V72%20H424%20V72%20H432%20V64%20H440%20V80%20H448%20V96%20H456%20V112%20H464%20V120%20H472%20V120%20H480%20V136%20H488%20V160%20H496%20V168%20H504%20V168%20H512%20V152%20H520%20V136%20H528%20V120%20H536%20V112%20H544%20V112%20H552%20V104%20H560%20V88%20H568%20V72%20H576%20V56%20H584%20V56%20H592%20V40%20H600%20V40%20H608%20V40%20H616%20V72%20H624%20V64%20H632%20V96%20H640%20V88%20H648%20V104%20H656%20V128%20H664%20V120%20H672%20V144%20H680%20V152%20H688%20V176%20H696%20V160%20H704%20V152%20H712%20V136%20H720%20V200%20Z%22%20fill%3D%22%23CCD4DA%22%2F%3E%3Cpath%20d%3D%22M0%20200%20V152%20H8%20V160%20H16%20V176%20H24%20V184%20H32%20V192%20H40%20V184%20H48%20V184%20H56%20V192%20H64%20V192%20H72%20V176%20H80%20V168%20H88%20V168%20H96%20V144%20H104%20V144%20H112%20V120%20H120%20V128%20H128%20V104%20H136%20V96%20H144%20V88%20H152%20V88%20H160%20V104%20H168%20V112%20H176%20V120%20H184%20V136%20H192%20V152%20H200%20V152%20H208%20V160%20H216%20V168%20H224%20V184%20H232%20V184%20H240%20V192%20H248%20V176%20H256%20V176%20H264%20V184%20H272%20V184%20H280%20V184%20H288%20V168%20H296%20V160%20H304%20V152%20H312%20V136%20H320%20V120%20H328%20V120%20H336%20V104%20H344%20V112%20H352%20V120%20H360%20V128%20H368%20V144%20H376%20V160%20H384%20V160%20H392%20V176%20H400%20V176%20H408%20V184%20H416%20V184%20H424%20V184%20H432%20V184%20H440%20V176%20H448%20V160%20H456%20V160%20H464%20V144%20H472%20V136%20H480%20V136%20H488%20V112%20H496%20V96%20H504%20V88%20H512%20V72%20H520%20V88%20H528%20V96%20H536%20V104%20H544%20V120%20H552%20V136%20H560%20V144%20H568%20V152%20H576%20V152%20H584%20V168%20H592%20V176%20H600%20V184%20H608%20V176%20H616%20V176%20H624%20V192%20H632%20V176%20H640%20V160%20H648%20V152%20H656%20V136%20H664%20V136%20H672%20V128%20H680%20V112%20H688%20V112%20H696%20V112%20H704%20V120%20H712%20V136%20H720%20V200%20Z%22%20fill%3D%22%23B9C6C4%22%2F%3E%3Cpath%20d%3D%22M128%20104h8v8h-8zM160%20104h8v8h-8zM208%20160h8v8h-8zM328%20120h8v8h-8zM336%20104h8v8h-8zM384%20160h8v8h-8zM480%20136h8v8h-8zM504%2088h8v8h-8zM536%20104h8v8h-8zM576%20152h8v8h-8zM584%20168h8v8h-8zM648%20152h8v8h-8zM712%20136h8v8h-8z%22%20fill%3D%22%2397AE96%22%2F%3E%3C%2Fsvg%3E") repeat-x 0 100%/720px 200px;-webkit-mask-image:linear-gradient(180deg,#000 40%,transparent 96%);mask-image:linear-gradient(180deg,#000 40%,transparent 96%)}
+.bg-mist{position:absolute;left:0;right:0;bottom:0;height:40%;background:linear-gradient(180deg,rgba(245,242,236,0) 0%,rgba(246,243,237,.85) 30%,#F5F2EC 55%,#F3F0EA 100%)}
+.bg-cloud{position:absolute;inset:0;will-change:transform}
+.cl{position:absolute;display:block;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%229%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M6%202h5V1h5v1h2v2h3v3h2v2H1V7h2V5h3z%22%20fill%3D%22%23FCFAF5%22/%3E%3Cpath%20d%3D%22M1%208h22v1H1z%22%20fill%3D%22%23EEE7DB%22/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;image-rendering:pixelated;animation:drift linear infinite}
+.cl.s{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%226%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M4%201h5V0h3v1h2v2h2v3H0V3h2V2h2z%22%20fill%3D%22%23FCFAF5%22/%3E%3Cpath%20d%3D%22M0%205h16v1H0z%22%20fill%3D%22%23EEE7DB%22/%3E%3C/svg%3E")}
+.c1{top:9%;width:120px;height:45px;animation-duration:110s;animation-delay:-20s}
+.c2{top:22%;width:80px;height:30px;animation-duration:150s;animation-delay:-90s;opacity:.85}
+.c3{top:4%;width:96px;height:36px;animation-duration:130s;animation-delay:-60s;opacity:.9}
+.c4{top:30%;width:64px;height:24px;animation-duration:170s;animation-delay:-130s;opacity:.7}
+@keyframes drift{from{transform:translate3d(-160px,0,0)}to{transform:translate3d(calc(100vw + 160px),0,0)}}
+.bird{position:absolute;display:block;width:28px;height:10px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2214%22%20height%3D%225%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M0%200h1v1h1v1h1v1h1V2h1V1h1V0h1v1H6v1H5v1H4v1H3V3H2V2H1V1H0z%22%20fill%3D%22%238F8678%22/%3E%3Cpath%20d%3D%22M7%202h1v1h1v1h1V3h1V2h1v1h-1v1h-1v1H9V4H8V3H7z%22%20fill%3D%22%238F8678%22/%3E%3C/svg%3E") no-repeat 0 0/56px 10px;image-rendering:pixelated;animation:fly 38s linear infinite,flap .5s steps(1) infinite}
+.bird.b2{top:17%;animation-delay:-14s,-.2s;transform:scale(.8)}
+.bird.b1{top:13%}
+.bird.b3{top:20%;animation-delay:-26s,-.1s;width:21px;height:8px;background-size:42px 8px}
+@keyframes fly{0%{left:-40px;margin-top:0}50%{margin-top:-14px}100%{left:calc(100% + 40px);margin-top:0}}
+@keyframes flap{0%{background-position:0 0}50%{background-position:100% 0}}
+.calm .cl,.calm .bird{animation:none}
+.calm .c1{left:8%}.calm .c2{left:68%}.calm .c3{left:40%}.calm .c4{left:84%}
+.calm .bird{display:none}
+
+/* 战斗端端：可点的透明热区 + 对话气泡 */
+.hero-hit{position:absolute;left:0;top:0;width:76px;height:84px;border:0;background:transparent;cursor:pointer;z-index:35;opacity:0;pointer-events:none;-webkit-tap-highlight-color:transparent}
+.hero-hit.on{pointer-events:auto}
+.hero-hit:focus-visible{opacity:1;outline:2px solid var(--ink);outline-offset:2px}
+.bubble{position:absolute;left:0;top:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .15s;margin:0}
+.bubble.on{opacity:1}
+.bubble span{position:absolute;left:0;bottom:12px;transform:translateX(-50%);display:block;white-space:nowrap;padding:0 12px;height:34px;line-height:34px;
+  background:#fff;color:var(--ink);font-weight:700;font-size:14px;box-shadow:0 0 0 3px #1B5A8E,3px 5px 0 3px rgba(26,25,23,.16)}
+.bubble span::after{content:"";position:absolute;left:50%;bottom:-9px;width:8px;height:6px;margin-left:-4px;background:#1B5A8E}
+
+.fallback{display:none}
+
+/* 角楼 / 旗 / 正门热区：透明的大按钮盖住整座建筑，标签挂在头顶，位置由 castle.js 每帧算 */
+.spot{position:absolute;left:0;top:0;width:0;height:0;text-decoration:none;opacity:0;transition:opacity .25s;will-change:transform,opacity;z-index:2}
+.spot.off{pointer-events:none}
+.spot .hit{position:absolute;left:0;top:0;width:60px;height:60px;border-radius:2px}
+.spot .lab{position:absolute;left:0;top:0;display:flex;align-items:center;gap:7px;white-space:nowrap;
+  height:36px;padding:0 12px 0 5px;background:var(--card);color:var(--c);font-weight:700;font-size:15px;letter-spacing:.02em;
+  box-shadow:0 0 0 var(--px) var(--c),var(--px) calc(var(--px) * 2) 0 var(--px) rgba(26,25,23,.18);
+  transition:transform .14s steps(3),background .14s}
+.spot .lab i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 5px;
+  background:var(--b);color:var(--c);font-size:12px;font-weight:800;letter-spacing:0;font-family:ui-monospace,Menlo,Consolas,monospace}
+.spot .lab i.lock svg{width:13px;height:13px}
+.spot:hover .lab,.spot:focus-visible .lab{transform:translateY(-3px)}
+.spot:focus-visible{outline:none}
+.spot:focus-visible .hit{box-shadow:inset 0 0 0 3px var(--c)}
+.spot.press .lab{background:var(--c);color:#fff;transform:translateY(2px)}
+.spot.press .lab i{background:rgba(255,255,255,.22);color:#fff}
+.spot.press .hit{animation:ping .6s steps(6) forwards}
+@keyframes ping{0%{box-shadow:inset 0 0 0 0 rgba(255,214,120,.0)}30%{box-shadow:inset 0 0 0 4px rgba(255,214,120,.8)}100%{box-shadow:inset 0 0 0 4px rgba(255,214,120,0)}}
+
+.bar{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding-top:4px;padding-bottom:6px;min-height:52px}
+.hint{font-size:13px;color:var(--muted)}
+.hand{display:inline-block;font-weight:700;color:var(--ink);margin-right:4px}
+.turn{height:40px;padding:0 16px;border:0;background:var(--card);color:var(--ink);font:600 13px var(--sans);box-shadow:0 0 0 2px var(--ink);cursor:pointer}
+.turn:active{transform:translateY(1px)}
+.turn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* 降级：静态图 */
+.nogl #castle,.nogl .bar,.nogl .hero-hit,.nogl #bubble,.nogl .bg{display:none}
+.nogl .stage{height:auto;min-height:0;aspect-ratio:1/1;max-width:min(100%,640px);cursor:default}
+.nogl .fallback{display:block;width:100%;height:100%;object-fit:cover}
+.nogl .spot{opacity:1}
+/* 不支持 aspect-ratio 的老内核 */
+@supports not (aspect-ratio:1/1){.nogl .stage{height:0;padding-bottom:100%;max-width:100%}.nogl .fallback{position:absolute;inset:0}}
+
+/* 生成静态图时用 */
+.still body{background:#F3F0EA}
+.still .top,.still .rooms,.still .foot,.still .spot,.still .bar,.still .hero-hit,.still #bubble{display:none}
+.still .stage{width:800px;height:800px;min-height:0;max-width:none;margin:0}
+
+/* 文字目录 */
+.rooms{padding-top:clamp(28px,5vw,48px);padding-bottom:clamp(36px,6vw,64px)}
+.rooms h2{font-family:var(--serif);font-weight:700;font-size:clamp(22px,3vw,28px);letter-spacing:.04em;margin-bottom:18px}
+.room-list{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(min-width:760px){.room-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
+.room-list a{display:flex;align-items:center;gap:12px;min-height:72px;padding:12px;background:var(--card);text-decoration:none;
+  box-shadow:0 0 0 2px var(--line);transition:box-shadow .12s}
+.room-list a:hover,.room-list a:focus-visible{box-shadow:0 0 0 2px var(--c),3px 4px 0 2px rgba(26,25,23,.12);outline:none}
+.room-list i{flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--b);color:var(--c);
+  font-style:normal;font-weight:800;font-size:14px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.room-list span{display:flex;flex-direction:column;min-width:0}
+.room-list b{font-size:16px}
+.room-list small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.foot{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;padding-top:28px;padding-bottom:44px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.foot .brand svg{width:26px}
+.foot .brand b{font-size:15px}
+
+@media(max-width:520px){
+  .stage{height:min(80vh,700px);min-height:520px}
+  .spot .lab{height:34px;font-size:14px;padding:0 10px 0 4px}
+  .hint{font-size:12px;flex-basis:100%;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){.spot,.spot .lab{transition:none}.spot.press .hit{animation:none;box-shadow:inset 0 0 0 4px rgba(255,214,120,.9)}}

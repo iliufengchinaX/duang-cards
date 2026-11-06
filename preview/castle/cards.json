@@ -1,0 +1,68 @@
+{
+ "_说明": "点读卡唯一清单。新卡只在 cards 里加一行，首页和目录页自动更新。subject: eng | cn；英语按 date 新→旧，语文按 order 课序。 （预览版：href 指向站点根目录下真实的卡片）",
+ "cards": [
+  {
+   "subject": "eng",
+   "letters": "Y Z",
+   "title": "Y / Z 单词点读",
+   "preview": "yacht · yogurt · yo-yo · zipper",
+   "date": "2026.11.06",
+   "href": "../../eng/yz.html",
+   "cover": "#C9D9C8",
+   "coverInk": "#243528"
+  },
+  {
+   "subject": "eng",
+   "letters": "V W X",
+   "title": "V / W / X 单词点读",
+   "preview": "box · fox · vet · water · wax",
+   "date": "2026.10.30",
+   "href": "../../eng/vwx.html",
+   "cover": "#C5D6E4",
+   "coverInk": "#1E3344"
+  },
+  {
+   "subject": "eng",
+   "letters": "S T U",
+   "title": "S / T / U 单词点读",
+   "preview": "soap · sun · turtle · umbrella",
+   "date": "2026.10.23",
+   "href": "../../eng/stu.html",
+   "cover": "#E4D5B8",
+   "coverInk": "#3D2E16"
+  },
+  {
+   "subject": "cn",
+   "letters": "a o e",
+   "title": "拼音第 1 课 · 单韵母",
+   "preview": "a · o · e · i · u · ü",
+   "date": "2026.11.06",
+   "href": "../../cn/py01.html",
+   "order": 1,
+   "cover": "#E8CFC4",
+   "coverInk": "#4A261C"
+  },
+  {
+   "subject": "cn",
+   "letters": "d t n l",
+   "title": "拼音点读卡 · d t n l",
+   "preview": "男声 / 女声可切换",
+   "date": "2026.11.06",
+   "href": "../../cn/dtnl.html",
+   "order": 2,
+   "cover": "#D7CFC2",
+   "coverInk": "#352E24"
+  },
+  {
+   "subject": "cn",
+   "letters": "j q x",
+   "title": "j q x 作业点读卡",
+   "preview": "拼音练习",
+   "date": "2026.11.06",
+   "href": "../../cn/jqx.html",
+   "order": 3,
+   "cover": "#D4C7D8",
+   "coverInk": "#3A2842"
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>英语 · Hello Duang</title><link rel="icon" href="../assets/logo-line.svg" type="image/svg+xml"><link rel="stylesheet" href="../sub.css">
+</head>
+<body style="--b:#DCEEF4;--c:#1B5A6E"><div class="wrap">
+<header class="top"><a class="back" href="../">← 回城堡</a><a class="brand" href="../">Hello Duang</a></header>
+<div class="head"><span class="badge">ABC</span><div><h1>英语</h1><p class="lead">左前角楼里的单词点读卡</p></div></div>
+<div class="list" id="list"><p class="ph">加载中…</p></div>
+</div><script>
+fetch('../cards.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){
+ var e=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+ var L=(d.cards||[]).filter(function(c){return c.subject==='eng'});
+ L.sort(function(a,b){return b.date.localeCompare(a.date)});
+ document.getElementById('list').innerHTML=L.length?L.map(function(c){return '<a class="item" href="../'+e(c.href)+'" style="--cover:'+e(c.cover)+';--cover-ink:'+e(c.coverInk)+'"><span class="chip">'+e(c.letters)+'</span><span class="ib"><span class="it">'+e(c.title)+'</span><br><span class="im">'+e(c.preview)+' · '+e(c.date)+'</span></span></a>'}).join(''):'<p class="ph">还没有卡片</p>';
+}).catch(function(){document.getElementById('list').innerHTML='<p class="ph">目录暂时没加载出来，请刷新</p>'});
+</script></body></html>
