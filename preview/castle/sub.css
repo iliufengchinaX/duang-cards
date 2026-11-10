@@ -21,3 +21,9 @@ h1{font-family:var(--serif);font-size:clamp(26px,5vw,36px);letter-spacing:.04em}
 .ib{padding:12px 16px;min-width:0;overflow:hidden}
 .it{font-weight:600}
 .im{display:block;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.foot{margin-top:28px;padding:20px 0 40px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.55}
+.foot .credit{max-width:42em}
+.foot .credit p+p{margin-top:4px}
+.foot .credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.foot .credit a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}

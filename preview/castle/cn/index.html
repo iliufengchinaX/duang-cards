@@ -13,4 +13,11 @@ fetch('../cards.json',{cache:'no-cache'}).then(function(r){return r.json()}).the
  L.sort(function(a,b){return (a.order||999)-(b.order||999)});
  document.getElementById('list').innerHTML=L.length?L.map(function(c){return '<a class="item" href="../'+e(c.href)+'" style="--cover:'+e(c.cover)+';--cover-ink:'+e(c.coverInk)+'"><span class="chip">'+e(c.letters)+'</span><span class="ib"><span class="it">'+e(c.title)+'</span><br><span class="im">'+e(c.preview)+' · '+e(c.date)+'</span></span></a>'}).join(''):'<p class="ph">还没有卡片</p>';
 }).catch(function(){document.getElementById('list').innerHTML='<p class="ph">目录暂时没加载出来，请刷新</p>'});
-</script></body></html>
+</script>
+<footer class="foot wrap">
+  <div class="credit">
+    <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
+    <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
+  </div>
+</footer>
+</body></html>

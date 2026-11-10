@@ -115,7 +115,12 @@ a{color:inherit}
 .room-list b{font-size:16px}
 .room-list small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.foot{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between;padding-top:28px;padding-bottom:44px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.foot{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding-top:28px;padding-bottom:44px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.foot-row{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;justify-content:space-between}
+.foot .credit{font-size:12px;line-height:1.55;max-width:42em}
+.foot .credit p+p{margin-top:4px}
+.foot .credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.foot .credit a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .foot .brand svg{width:26px}
 .foot .brand b{font-size:15px}
 

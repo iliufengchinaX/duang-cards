@@ -177,6 +177,22 @@
     font-size: 13px;
     color: var(--muted);
   }
+  .foot .credit {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.55;
+    max-width: 42em;
+  }
+  .foot .credit p + p { margin-top: 4px; }
+  .foot .credit a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .foot .credit a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
   @media (prefers-reduced-motion: reduce) {
     a.card { transition: none; }
   }
@@ -205,7 +221,13 @@
       <div class="grid" id="cn-grid"></div>
     </section>
 
-    <p class="foot">Duang · 点读卡目录</p>
+    <div class="foot">
+      <p>Duang · 点读卡目录</p>
+      <div class="credit">
+        <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
+        <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
+      </div>
+    </div>
   </div>
 
 <script>
