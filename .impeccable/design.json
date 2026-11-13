@@ -1,0 +1,511 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T10:32:27Z",
+  "title": "Design System: Hello Duang",
+  "extensions": {
+    "colorMeta": {
+      "sapphire": {
+        "role": "primary",
+        "displayName": "Listening Sapphire",
+        "canonical": "#0b57d0",
+        "tonalRamp": [
+          "oklch(15% 0.066 260.6)",
+          "oklch(26% 0.111 260.6)",
+          "oklch(38% 0.161 260.6)",
+          "oklch(50% 0.199 260.6)",
+          "oklch(62% 0.199 260.6)",
+          "oklch(74% 0.135 260.6)",
+          "oklch(85% 0.075 260.6)",
+          "oklch(95% 0.024 260.6)"
+        ]
+      },
+      "sapphire-wash": {
+        "role": "primary",
+        "displayName": "Sapphire Wash",
+        "canonical": "rgba(11, 87, 208, 0.1)",
+        "tonalRamp": [
+          "oklch(15% 0.066 260.6)",
+          "oklch(26% 0.111 260.6)",
+          "oklch(38% 0.161 260.6)",
+          "oklch(50% 0.199 260.6)",
+          "oklch(62% 0.199 260.6)",
+          "oklch(74% 0.135 260.6)",
+          "oklch(85% 0.075 260.6)",
+          "oklch(95% 0.024 260.6)"
+        ]
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Window Mist",
+        "canonical": "#e4edf7",
+        "tonalRamp": [
+          "oklch(15% 0.017 250.8)",
+          "oklch(26% 0.017 250.8)",
+          "oklch(38% 0.017 250.8)",
+          "oklch(50% 0.017 250.8)",
+          "oklch(62% 0.017 250.8)",
+          "oklch(74% 0.017 250.8)",
+          "oklch(85% 0.017 250.8)",
+          "oklch(95% 0.017 250.8)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "#1d1d1f",
+        "tonalRamp": [
+          "oklch(15% 0.004 286.1)",
+          "oklch(26% 0.004 286.1)",
+          "oklch(38% 0.004 286.1)",
+          "oklch(50% 0.004 286.1)",
+          "oklch(62% 0.004 286.1)",
+          "oklch(74% 0.004 286.1)",
+          "oklch(85% 0.004 286.1)",
+          "oklch(95% 0.004 286.1)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Graphite",
+        "canonical": "#3a3a3c",
+        "tonalRamp": [
+          "oklch(15% 0.003 286.2)",
+          "oklch(26% 0.003 286.2)",
+          "oklch(38% 0.003 286.2)",
+          "oklch(50% 0.003 286.2)",
+          "oklch(62% 0.003 286.2)",
+          "oklch(74% 0.003 286.2)",
+          "oklch(85% 0.003 286.2)",
+          "oklch(95% 0.003 286.2)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Tile White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Cool Hairline",
+        "canonical": "rgba(22, 34, 51, 0.1)",
+        "tonalRamp": [
+          "oklch(15% 0.037 257.1)",
+          "oklch(26% 0.037 257.1)",
+          "oklch(38% 0.037 257.1)",
+          "oklch(50% 0.037 257.1)",
+          "oklch(62% 0.037 257.1)",
+          "oklch(74% 0.037 257.1)",
+          "oklch(85% 0.037 257.1)",
+          "oklch(95% 0.024 257.1)"
+        ]
+      },
+      "frame": {
+        "role": "neutral",
+        "displayName": "Picture Frame",
+        "canonical": "rgba(22, 34, 51, 0.06)",
+        "tonalRamp": [
+          "oklch(15% 0.037 257.1)",
+          "oklch(26% 0.037 257.1)",
+          "oklch(38% 0.037 257.1)",
+          "oklch(50% 0.037 257.1)",
+          "oklch(62% 0.037 257.1)",
+          "oklch(74% 0.037 257.1)",
+          "oklch(85% 0.037 257.1)",
+          "oklch(95% 0.024 257.1)"
+        ]
+      },
+      "glass-solid": {
+        "role": "neutral",
+        "displayName": "Solid Glass",
+        "canonical": "rgba(247, 249, 252, 0.94)",
+        "tonalRamp": [
+          "oklch(15% 0.005 258.3)",
+          "oklch(26% 0.005 258.3)",
+          "oklch(38% 0.005 258.3)",
+          "oklch(50% 0.005 258.3)",
+          "oklch(62% 0.005 258.3)",
+          "oklch(74% 0.005 258.3)",
+          "oklch(85% 0.005 258.3)",
+          "oklch(95% 0.005 258.3)"
+        ]
+      },
+      "glass-frost": {
+        "role": "neutral",
+        "displayName": "Frosted Glass",
+        "canonical": "rgba(255, 255, 255, 0.56)",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(62% 0 0)",
+          "oklch(74% 0 0)",
+          "oklch(85% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "bar-solid": {
+        "role": "neutral",
+        "displayName": "Solid Bar",
+        "canonical": "rgba(244, 247, 251, 0.96)",
+        "tonalRamp": [
+          "oklch(15% 0.006 255.5)",
+          "oklch(26% 0.006 255.5)",
+          "oklch(38% 0.006 255.5)",
+          "oklch(50% 0.006 255.5)",
+          "oklch(62% 0.006 255.5)",
+          "oklch(74% 0.006 255.5)",
+          "oklch(85% 0.006 255.5)",
+          "oklch(95% 0.006 255.5)"
+        ]
+      },
+      "bar-frost": {
+        "role": "neutral",
+        "displayName": "Frosted Bar",
+        "canonical": "rgba(244, 247, 251, 0.72)",
+        "tonalRamp": [
+          "oklch(15% 0.006 255.5)",
+          "oklch(26% 0.006 255.5)",
+          "oklch(38% 0.006 255.5)",
+          "oklch(50% 0.006 255.5)",
+          "oklch(62% 0.006 255.5)",
+          "oklch(74% 0.006 255.5)",
+          "oklch(85% 0.006 255.5)",
+          "oklch(95% 0.006 255.5)"
+        ]
+      },
+      "sun": {
+        "role": "neutral",
+        "displayName": "Warm Sun",
+        "canonical": "rgba(255, 214, 176, 0.95)",
+        "tonalRamp": [
+          "oklch(15% 0.035 64.6)",
+          "oklch(26% 0.059 64.6)",
+          "oklch(38% 0.068 64.6)",
+          "oklch(50% 0.068 64.6)",
+          "oklch(62% 0.068 64.6)",
+          "oklch(74% 0.068 64.6)",
+          "oklch(85% 0.068 64.6)",
+          "oklch(95% 0.034 64.6)"
+        ]
+      },
+      "sky": {
+        "role": "neutral",
+        "displayName": "Cool Sky",
+        "canonical": "rgba(156, 196, 255, 0.9)",
+        "tonalRamp": [
+          "oklch(15% 0.057 258.0)",
+          "oklch(26% 0.094 258.0)",
+          "oklch(38% 0.094 258.0)",
+          "oklch(50% 0.094 258.0)",
+          "oklch(62% 0.094 258.0)",
+          "oklch(74% 0.094 258.0)",
+          "oklch(85% 0.075 258.0)",
+          "oklch(95% 0.024 258.0)"
+        ]
+      },
+      "pool": {
+        "role": "neutral",
+        "displayName": "Lower Pool",
+        "canonical": "rgba(210, 228, 255, 0.85)",
+        "tonalRamp": [
+          "oklch(15% 0.042 258.4)",
+          "oklch(26% 0.042 258.4)",
+          "oklch(38% 0.042 258.4)",
+          "oklch(50% 0.042 258.4)",
+          "oklch(62% 0.042 258.4)",
+          "oklch(74% 0.042 258.4)",
+          "oklch(85% 0.042 258.4)",
+          "oklch(95% 0.024 258.4)"
+        ]
+      },
+      "ember": {
+        "role": "semantic",
+        "displayName": "Kiln Ember",
+        "canonical": "#7a2e1f",
+        "tonalRamp": [
+          "oklch(15% 0.057 33.0)",
+          "oklch(26% 0.097 33.0)",
+          "oklch(38% 0.110 33.0)",
+          "oklch(50% 0.110 33.0)",
+          "oklch(62% 0.110 33.0)",
+          "oklch(74% 0.110 33.0)",
+          "oklch(85% 0.083 33.0)",
+          "oklch(95% 0.026 33.0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home headline. Weight 600, tight tracking, balanced wrap."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Course title on the word bank."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section, continue, and footer headings at 28px."
+      },
+      "unit": {
+        "displayName": "Unit",
+        "purpose": "Letter heading of a word-bank unit, in sapphire."
+      },
+      "word": {
+        "displayName": "Word",
+        "purpose": "The word name on a listening card. The initial is sapphire."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text at 17px, and the primary action label."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "14px semibold facts and the heard-count. Directory links are 14px at weight 500."
+      },
+      "mark": {
+        "displayName": "Mark",
+        "purpose": "Light-weight lesson letter. Ink on the card; sapphire when it stands in for a missing pixel."
+      },
+      "ipa": {
+        "displayName": "IPA",
+        "purpose": "Phonetic spelling only, on the phonetic face, in sapphire."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel",
+        "value": "0 1px 2px rgba(28, 45, 74, 0.05), 0 18px 44px -24px rgba(28, 45, 74, 0.38)",
+        "purpose": "Soft contact plus a wide negative-spread lift under glass panels, lesson cards, and the letter rail."
+      },
+      {
+        "name": "inset-light",
+        "value": "inset 0 1px 0 rgba(255, 255, 255, 0.7)",
+        "purpose": "Bright top edge on glass panels. The letter rail does not use it."
+      },
+      {
+        "name": "action",
+        "value": "0 10px 22px -12px rgba(11, 87, 208, 0.85)",
+        "purpose": "Sapphire lift under the filled primary button."
+      },
+      {
+        "name": "playing",
+        "value": "0 0 0 2px #0b57d0, 0 16px 36px -18px rgba(11, 87, 208, 0.55)",
+        "purpose": "Sapphire ring and tinted lift on the word card while audio plays."
+      },
+      {
+        "name": "error",
+        "value": "0 0 0 2px #7a2e1f",
+        "purpose": "Ember ring on a word card whose audio failed."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-lift",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Hover lift and the 640ms entrance rise."
+      },
+      {
+        "name": "duration-hover",
+        "value": "180ms",
+        "purpose": "Transform, shadow, and background. Cards lift 3px, the primary button lifts 1px, and a press scales to 0.98."
+      },
+      {
+        "name": "duration-rise",
+        "value": "640ms",
+        "purpose": "Entrance rise of 12px on revealed blocks."
+      },
+      {
+        "name": "duration-bars",
+        "value": "0.9s",
+        "purpose": "ease-in-out pulse of the three bars on the active play control."
+      },
+      {
+        "name": "reduce",
+        "value": "none",
+        "purpose": "When the system asks for less motion, animation and transition are removed and hover transforms do not run. The bars rest at 70% height."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "subjects",
+        "value": "700px"
+      },
+      {
+        "name": "lessons",
+        "value": "800px"
+      },
+      {
+        "name": "rail",
+        "value": "960px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled sapphire action. Home uses it for 开始学习. Minimum height 48px, 14px radius, sapphire lift.",
+      "html": "<a class=\"ds-btn\" href=\"#word-bank\">开始学习 <svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path d=\"M3 8h10M9 4l4 4-4 4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a>",
+      "css": ".ds-btn {\n  display: inline-flex; align-items: center; justify-content: center; gap: 8px;\n  min-height: 48px; padding: 0 20px; border: 0; border-radius: 14px;\n  background: #0b57d0; color: #fff; text-decoration: none;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -0.01em;\n  box-shadow: 0 10px 22px -12px rgba(11, 87, 208, 0.85);\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease;\n}\n.ds-btn svg { display: block; }\n.ds-btn:hover { transform: translateY(-1px); }\n.ds-btn:active { transform: scale(0.98); }\n.ds-btn:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }"
+    },
+    {
+      "name": "Play Normal",
+      "kind": "button",
+      "refersTo": "play-normal",
+      "description": "Starts the word at normal speed. Sapphire fill, 12px radius, 44px tall. While it plays, the triangle hides and three bars pulse.",
+      "html": "<button class=\"ds-play-n\" type=\"button\"><svg viewBox=\"0 0 12 12\" width=\"11\" height=\"11\" aria-hidden=\"true\"><path d=\"M2.2 1.2v9.6L10.6 6z\" fill=\"currentColor\"/></svg><span class=\"ds-bars\"><i></i><i></i><i></i></span><span>正常</span></button>",
+      "css": ".ds-play-n {\n  min-height: 44px;\n  border: 0;\n  border-radius: 12px;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  background: #0b57d0;\n  color: #fff;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  font-size: 15px;\n  font-weight: 600;\n  cursor: pointer;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);\n}\n.ds-play-n svg { display: block; }\n.ds-play-n .ds-bars { display: none; align-items: flex-end; gap: 2px; height: 12px; }\n.ds-play-n.is-play svg { display: none; }\n.ds-play-n.is-play .ds-bars { display: inline-flex; }\n.ds-play-n .ds-bars i {\n  display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor;\n  transform-origin: center bottom; animation: ds-bar 0.9s ease-in-out infinite;\n}\n.ds-play-n .ds-bars i:nth-child(2) { animation-delay: 0.15s; height: 70%; }\n.ds-play-n .ds-bars i:nth-child(3) { animation-delay: 0.3s; }\n.ds-play-n:active { transform: scale(0.98); }\n.ds-play-n:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n@keyframes ds-bar {\n  0%, 100% { transform: scaleY(0.35); }\n  50% { transform: scaleY(1); }\n}"
+    },
+    {
+      "name": "Play Slow",
+      "kind": "button",
+      "refersTo": "play-slow",
+      "description": "Plays the same word slowly. Sapphire wash, sapphire text, same 12px radius and 44px height.",
+      "html": "<button class=\"ds-play-s\" type=\"button\"><span class=\"ds-bars\"><i></i><i></i><i></i></span><span>慢速</span></button>",
+      "css": ".ds-play-s {\n  min-height: 44px;\n  border: 0;\n  border-radius: 12px;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  background: rgba(11, 87, 208, 0.1);\n  color: #0b57d0;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  font-size: 15px;\n  font-weight: 600;\n  cursor: pointer;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);\n}\n.ds-play-s .ds-bars { display: none; align-items: flex-end; gap: 2px; height: 12px; }\n.ds-play-s.is-play .ds-bars { display: inline-flex; }\n.ds-play-s .ds-bars i {\n  display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor;\n  transform-origin: center bottom; animation: ds-bar 0.9s ease-in-out infinite;\n}\n.ds-play-s .ds-bars i:nth-child(2) { animation-delay: 0.15s; height: 70%; }\n.ds-play-s .ds-bars i:nth-child(3) { animation-delay: 0.3s; }\n.ds-play-s:active { transform: scale(0.98); }\n.ds-play-s:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n@keyframes ds-bar { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }"
+    },
+    {
+      "name": "Practice",
+      "kind": "button",
+      "refersTo": "practice",
+      "description": "Toggles the hidden-Chinese practice view. A 44px pill: white at 72% with a hairline at rest, filled sapphire when pressed.",
+      "html": "<div class=\"ds-practice-row\"><button class=\"ds-practice\" type=\"button\" aria-pressed=\"false\">遮住中文</button><button class=\"ds-practice\" type=\"button\" aria-pressed=\"true\">遮住中文</button></div>",
+      "css": ".ds-practice-row { display: flex; flex-wrap: wrap; gap: 8px; }\n.ds-practice {\n  min-height: 44px; padding: 0 16px; border-radius: 999px;\n  border: 1px solid rgba(22, 34, 51, 0.1);\n  background: rgba(255, 255, 255, 0.72); color: #0b57d0;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;\n}\n.ds-practice[aria-pressed=\"true\"] { background: #0b57d0; color: #fff; border-color: transparent; }\n.ds-practice:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }"
+    },
+    {
+      "name": "Tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Lesson kind chip. Sapphire wash, sapphire text, 12px semibold, 24px pill.",
+      "html": "<span class=\"ds-tag\">单词</span>",
+      "css": ".ds-tag {\n  display: inline-flex; align-items: center; height: 24px; padding: 0 8px;\n  border-radius: 999px; background: rgba(11, 87, 208, 0.1); color: #0b57d0;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif; font-size: 12px; font-weight: 600;\n}"
+    },
+    {
+      "name": "Lesson Card",
+      "kind": "card",
+      "refersTo": "lesson-card",
+      "description": "A lesson in the home catalog. Glass panel, light ink mark, kind tag, title, and preview. Featured lessons add 64px pixel thumbs.",
+      "html": "<a class=\"ds-lesson\" href=\"#lesson\"><p class=\"ds-mark\">Y Z</p><span class=\"ds-lesson-copy\"><span class=\"ds-meta\"><span class=\"ds-lesson-tag\">单词</span><span>8 个单词</span><time>2026.11.06</time></span><span class=\"ds-lesson-title\">Y / Z 单词点读</span><span class=\"ds-preview\">yacht · yogurt · yo-yo · zipper</span></span></a>",
+      "css": ".ds-lesson {\n  display: flex; flex-direction: column; padding: 22px 22px 20px; color: #1d1d1f;\n  text-decoration: none; background: rgba(247, 249, 252, 0.94);\n  border: 1px solid rgba(22, 34, 51, 0.1); border-radius: 28px;\n  box-shadow: 0 1px 2px rgba(28, 45, 74, 0.05), 0 18px 44px -24px rgba(28, 45, 74, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.7); font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease;\n}\n.ds-lesson:hover { transform: translateY(-3px); }\n.ds-lesson:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n.ds-mark {\n  margin: 0 0 18px; font-weight: 300; font-size: clamp(46px, 6vw, 72px);\n  letter-spacing: -0.03em; line-height: 0.9;\n}\n.ds-meta {\n  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;\n  color: #3a3a3c; font-size: 13px;\n}\n.ds-meta time { margin-left: auto; font-variant-numeric: tabular-nums; }\n.ds-lesson-tag {\n  display: inline-flex; align-items: center; height: 24px; padding: 0 8px;\n  border-radius: 999px; background: rgba(11, 87, 208, 0.1); color: #0b57d0;\n  font-size: 12px; font-weight: 600;\n}\n.ds-lesson-title { display: block; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }\n.ds-preview { display: block; margin-top: 6px; color: #3a3a3c; font-size: 15px; line-height: 1.45; }\n@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {.ds-lesson { background: rgba(255, 255, 255, 0.56); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); }}"
+    },
+    {
+      "name": "Word Card",
+      "kind": "card",
+      "refersTo": "word-card",
+      "description": "A listening card. Glass on the word bank; inset, with no second shadow, inside the continue panel. A missing picture is a light sapphire letter. Playing draws a 2px sapphire ring; failure draws an ember ring.",
+      "html": "<article class=\"ds-word\"><button class=\"ds-art\" type=\"button\" aria-label=\"播放 ant，正常语速\"><span class=\"ds-glyph\" aria-hidden=\"true\">A</span></button><div class=\"ds-copy\"><h3><span class=\"ds-cap\">a</span>nt</h3><p class=\"ds-ipa\">/ænt/</p><p class=\"ds-zh\">蚂蚁</p><p class=\"ds-oops\">再点一次</p></div><div class=\"ds-plays\"><button class=\"ds-play-n\" type=\"button\"><svg viewBox=\"0 0 12 12\" width=\"11\" height=\"11\" aria-hidden=\"true\"><path d=\"M2.2 1.2v9.6L10.6 6z\" fill=\"currentColor\"/></svg><span class=\"ds-bars\"><i></i><i></i><i></i></span><span>正常</span></button><button class=\"ds-play-s\" type=\"button\"><span class=\"ds-bars\"><i></i><i></i><i></i></span><span>慢速</span></button></div></article>",
+      "css": ".ds-word {\n  display: grid;\n  grid-template-columns: 104px minmax(0, 1fr);\n  grid-template-areas: \"art copy\" \"plays plays\";\n  gap: 10px 14px;\n  padding: 12px;\n  background: rgba(247, 249, 252, 0.94);\n  color: #1d1d1f;\n  border: 1px solid rgba(22, 34, 51, 0.1);\n  border-radius: 28px;\n  box-shadow: 0 1px 2px rgba(28, 45, 74, 0.05), 0 18px 44px -24px rgba(28, 45, 74, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.7);\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease;\n}\n.ds-word:hover { transform: translateY(-3px); }\n.ds-word.is-on { box-shadow: 0 0 0 2px #0b57d0, 0 16px 36px -18px rgba(11, 87, 208, 0.55); }\n.ds-word.is-err { box-shadow: 0 0 0 2px #7a2e1f; }\n.ds-word.inset { background: none; border: 0; box-shadow: none; padding: 0; border-radius: 28px; }\n.ds-art {\n  grid-area: art; width: 104px; height: 104px; padding: 0; border-radius: 18px;\n  border: 1px solid rgba(22, 34, 51, 0.06); background: rgba(255, 255, 255, 0.42);\n  display: grid; place-items: center; cursor: pointer;\n}\n.ds-art.has-img { background: #fff; }\n.ds-glyph { font-weight: 300; font-size: 64px; line-height: 1; letter-spacing: -0.04em; color: #0b57d0; }\n.ds-copy { grid-area: copy; align-self: center; min-width: 0; }\n.ds-copy h3 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }\n.ds-cap { color: #0b57d0; }\n.ds-ipa { margin: 4px 0 0; font-family: \"Lucida Grande\", \"Segoe UI\", \"Noto Sans\", \"Arial Unicode MS\", -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif; font-size: 16px; line-height: 1.3; color: #0b57d0; }\n.ds-zh { margin: 2px 0 0; font-size: 16px; color: #3a3a3c; }\n.ds-oops { display: none; margin: 6px 0 0; color: #7a2e1f; font-size: 13px; font-weight: 600; }\n.ds-word.is-err .ds-oops { display: block; }\n.ds-plays { grid-area: plays; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }\n.ds-art:active { transform: scale(0.98); }\n.ds-art:focus-visible, .ds-word :focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {.ds-word:not(.inset) { background: rgba(255, 255, 255, 0.56); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); }}\n.ds-play-n {\n  min-height: 44px;\n  border: 0;\n  border-radius: 12px;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  background: #0b57d0;\n  color: #fff;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  font-size: 15px;\n  font-weight: 600;\n  cursor: pointer;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);\n}\n.ds-play-n svg { display: block; }\n.ds-play-n .ds-bars { display: none; align-items: flex-end; gap: 2px; height: 12px; }\n.ds-play-n.is-play svg { display: none; }\n.ds-play-n.is-play .ds-bars { display: inline-flex; }\n.ds-play-n .ds-bars i {\n  display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor;\n  transform-origin: center bottom; animation: ds-bar 0.9s ease-in-out infinite;\n}\n.ds-play-n .ds-bars i:nth-child(2) { animation-delay: 0.15s; height: 70%; }\n.ds-play-n .ds-bars i:nth-child(3) { animation-delay: 0.3s; }\n.ds-play-n:active { transform: scale(0.98); }\n.ds-play-n:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n@keyframes ds-bar {\n  0%, 100% { transform: scaleY(0.35); }\n  50% { transform: scaleY(1); }\n}\n.ds-play-s {\n  min-height: 44px;\n  border: 0;\n  border-radius: 12px;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  background: rgba(11, 87, 208, 0.1);\n  color: #0b57d0;\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  font-size: 15px;\n  font-weight: 600;\n  cursor: pointer;\n  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);\n}\n.ds-play-s .ds-bars { display: none; align-items: flex-end; gap: 2px; height: 12px; }\n.ds-play-s.is-play .ds-bars { display: inline-flex; }\n.ds-play-s .ds-bars i {\n  display: block; width: 3px; height: 100%; border-radius: 2px; background: currentColor;\n  transform-origin: center bottom; animation: ds-bar 0.9s ease-in-out infinite;\n}\n.ds-play-s .ds-bars i:nth-child(2) { animation-delay: 0.15s; height: 70%; }\n.ds-play-s .ds-bars i:nth-child(3) { animation-delay: 0.3s; }\n.ds-play-s:active { transform: scale(0.98); }\n.ds-play-s:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }"
+    },
+    {
+      "name": "Subject List",
+      "kind": "nav",
+      "refersTo": "subject-list",
+      "description": "The two subject rows on the home page, inside one glass panel. Hover washes a row with white at 45% opacity.",
+      "html": "<div class=\"ds-subjects\"><a class=\"ds-subject\" href=\"#english\"><span><strong>English</strong><small>单词、故事、总复习</small></span><em>7 课</em></a><a class=\"ds-subject\" href=\"#chinese\"><span><strong>语文</strong><small>拼音点读</small></span><em>4 课</em></a></div>",
+      "css": ".ds-subjects {\n  display: grid; padding: 6px; background: rgba(247, 249, 252, 0.94);\n  border: 1px solid rgba(22, 34, 51, 0.1); border-radius: 28px;\n  box-shadow: 0 1px 2px rgba(28, 45, 74, 0.05), 0 18px 44px -24px rgba(28, 45, 74, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.7); font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n}\n.ds-subject {\n  display: flex; align-items: center; justify-content: space-between; gap: 16px;\n  padding: 16px 18px; border-radius: 22px; color: #1d1d1f; text-decoration: none;\n  transition: background 180ms ease;\n}\n.ds-subject + .ds-subject { box-shadow: inset 0 1px 0 rgba(22, 34, 51, 0.1); }\n.ds-subject:hover { background: rgba(255, 255, 255, 0.45); }\n.ds-subject:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n.ds-subject strong { display: block; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }\n.ds-subject small { display: block; margin-top: 2px; color: #3a3a3c; font-size: 14px; }\n.ds-subject em { font-style: normal; font-weight: 600; color: #0b57d0; font-variant-numeric: tabular-nums; white-space: nowrap; }\n@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {.ds-subjects { background: rgba(255, 255, 255, 0.56); -webkit-backdrop-filter: blur(22px) saturate(1.7); backdrop-filter: blur(22px) saturate(1.7); }}"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky directory. Solid cool bar first; 20px blur and 1.6 saturation where backdrop-filter exists. The current item is sapphire at weight 600.",
+      "html": "<header class=\"ds-topbar\"><a class=\"ds-brand\" href=\"#top\">Hello Duang</a><nav class=\"ds-menu\" aria-label=\"目录\"><a href=\"#english\">English</a><a href=\"#word-bank\" aria-current=\"page\">Word Bank</a><a href=\"#about\">关于</a></nav></header>",
+      "css": ".ds-topbar {\n  display: flex; align-items: center; justify-content: space-between; gap: 12px;\n  min-height: 60px; padding: 0 16px; background: rgba(244, 247, 251, 0.96);\n  border-bottom: 1px solid rgba(22, 34, 51, 0.1); font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n}\n.ds-brand {\n  color: #1d1d1f; text-decoration: none; font-size: 17px; font-weight: 600;\n  letter-spacing: -0.03em; white-space: nowrap;\n}\n.ds-menu { display: flex; align-items: center; gap: 2px; }\n.ds-menu a {\n  padding: 8px; border-radius: 999px; color: #1d1d1f; text-decoration: none;\n  font-size: 14px; font-weight: 500; white-space: nowrap;\n}\n.ds-menu a[aria-current=\"page\"] { color: #0b57d0; font-weight: 600; }\n.ds-menu a:focus-visible, .ds-brand:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }\n@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {\n  .ds-topbar {\n    background: rgba(244, 247, 251, 0.72);\n    -webkit-backdrop-filter: blur(20px) saturate(1.6);\n    backdrop-filter: blur(20px) saturate(1.6);\n  }\n}"
+    },
+    {
+      "name": "Letter Rail",
+      "kind": "nav",
+      "refersTo": "rail-key",
+      "description": "The A–Z unit rail as it sits on a phone: 36px keys, current key filled sapphire, square top and 20px bottom corners, bar tint at 94% opacity.",
+      "html": "<nav class=\"ds-rail\" aria-label=\"字母单元\"><a href=\"#LA\">A</a><a href=\"#LB\">B</a><a class=\"is-current\" href=\"#LC\">C</a><a href=\"#LD\">D</a><a href=\"#LE\">E</a></nav>",
+      "css": ".ds-rail {\n  display: flex; gap: 4px; padding: 6px; width: max-content;\n  background: rgba(244, 247, 251, 0.94);\n  border: 1px solid rgba(22, 34, 51, 0.1);\n  border-radius: 0 0 20px 20px;\n  box-shadow: 0 1px 2px rgba(28, 45, 74, 0.05), 0 18px 44px -24px rgba(28, 45, 74, 0.38);\n  font-family: -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Hiragino Sans GB\", \"Helvetica Neue\", \"Segoe UI\", Roboto, \"Noto Sans\", \"Noto Sans SC\", \"Noto Sans CJK SC\", Cantarell, sans-serif;\n  -webkit-backdrop-filter: blur(22px) saturate(1.7);\n  backdrop-filter: blur(22px) saturate(1.7);\n}\n.ds-rail a {\n  width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px;\n  color: #1d1d1f; text-decoration: none; font-size: 14px; font-weight: 600;\n}\n.ds-rail a.is-current { background: #0b57d0; color: #fff; }\n.ds-rail a:focus-visible { outline: 2px solid #0b57d0; outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Morning Window",
+    "overview": "Hello Duang is a home listening library that reads as a course and plays as a lesson. The room is a morning window: cool mist for the ground, a warm sun washing the upper left, a cool sky washing the upper right, and a pale cool pool sitting low and toward the center. Panels are large, quiet, and slightly lifted. Sapphire is the only accent, reserved for the action, the current place, and the sound that is playing. The page is light only, open rather than dense, and the phone width is the first layout.\n\nGlass is the material. Panels and the top bar each ship a nearly opaque fill, then, where backdrop-filter exists, a blur and a saturate over a more transparent white. Support is probed at a 12px blur; the paints that actually run are a 22px blur at 1.7 saturation on panels and a 20px blur at 1.6 saturation on the bar. Depth stays soft: a contact shadow, a wide lift with negative spread, and a white inset along the top of a panel.\n\nChinese and English share one system sans stack, so both scripts stay the faces the device already has. The wordmark is that stack at body size, semibold, tracked tight. There is no mascot and no second display face. A lesson announces itself with a light-weight mark; a word without a family pixel keeps the picture frame and shows a light sapphire letter. The pixel files are household pictures, rendered crisp, and they sit outside the type system.",
+    "keyCharacteristics": [
+      "Cool mist ground with a warm sun, a cool sky, and a lower pale pool",
+      "Frosted panels with a 28px radius, a hairline, a soft offset shadow, and a solid fallback",
+      "One sapphire accent for the action, the current place, and the card that is playing",
+      "One system sans stack for both scripts, with light-weight letters beside the family pixels",
+      "A phone-width column first, a 48px primary action, and 44px play controls",
+      "Lifts and the playing bars only when the system allows motion"
+    ],
+    "rules": [
+      {
+        "name": "The One Sapphire Rule",
+        "body": "Sapphire is the only accent. It colors the listening word in the headline, the primary action, the current navigation item, the current letter, unit titles, tags, the slow-speed key, links, and the ring on the card that is playing. The sun, sky, and lower pool are light on the ground, not accents.",
+        "section": "colors"
+      },
+      {
+        "name": "The Solid Fallback Rule",
+        "body": "Every blurred surface declares a nearly opaque fill in the base rule. The blur, the saturation, and the more transparent fill apply only inside support for backdrop-filter. A panel still has to read when the filter is missing.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Stack Rule",
+        "body": "Chinese and English share the system sans stack. Do not add a display face, a serif, or a monospace wordmark. The phonetic face is only for IPA.",
+        "section": "typography"
+      },
+      {
+        "name": "The Light Letter Rule",
+        "body": "Oversized letters stay in the system stack at weight 300. A lesson mark is ink. The letter that stands in for a missing pixel is sapphire, inside the picture frame. Pixel files are not type.",
+        "section": "typography"
+      },
+      {
+        "name": "The Column Rule",
+        "body": "Content sits in a centered column, min(1120px, 100% − 32px). The first screen is one band: headline, primary action, then a full-width glass instrument. Two columns start at 700px for the continue instrument and the subject list, at 800px for lesson cards, and at 960px for a vertical letter rail beside the words.",
+        "section": "layout"
+      },
+      {
+        "name": "The Soft Offset Rule",
+        "body": "Resting glass uses one stacked shadow: a 1px contact shadow and a wide lift with negative spread, plus a white inset hairline on panels. The primary button carries a shorter sapphire lift. The playing card replaces the resting shadow with a 2px sapphire ring.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Panel Radius Rule",
+        "body": "Listening panels, lesson cards, and word cards share the 28px radius. Subject rows and the desktop letter rail use 22px. Picture frames use 18px, the small pixel thumbs 16px, the primary button 14px, and play keys 12px. Nav hits, tags, the practice control, letter keys, and meters are pills.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Playing Ring Rule",
+        "body": "The word card that is playing draws a 2px sapphire ring and a sapphire-tinted lift. The active play control hides its triangle and shows three bars in the current text color. A failed card draws a 2px ember ring and shows the retry line in ember.",
+        "section": "components"
+      },
+      {
+        "name": "The Picture Frame Rule",
+        "body": "A family pixel is contained, crisp, and centered on tile white with the picture-frame hairline. A missing pixel keeps the frame, uses a translucent white well, and shows a light sapphire letter. Do not substitute clipart.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** paint the page on window mist and set the warm sun, the cool sky, and the lower pool behind the column.",
+      "**Do** declare the solid glass fill and the solid bar fill first, and add blur only where backdrop-filter is supported.",
+      "**Do** keep sapphire as the only accent. The primary action is filled sapphire, 48px tall, 14px radius.",
+      "**Do** set Chinese and English in the one system stack. Lesson marks and missing-picture letters are weight 300.",
+      "**Do** render a family pixel crisp, contained, on tile white. When the file is missing, keep the frame and use the light sapphire letter.",
+      "**Do** draw keyboard focus as a 2px sapphire outline, 3px outside the control. When the system asks for less motion, drop transitions, lifts, and the bar animation."
+    ],
+    "donts": [
+      "**Don't** add a second accent, a rainbow letter scale, a mascot, or a separate display, serif, or monospace wordmark.",
+      "**Don't** let a panel depend on backdrop-filter for its fill.",
+      "**Don't** use a hard offset shadow. Resting depth is the soft stacked shadow.",
+      "**Don't** treat pixel word pictures as type or as clipart, and don't fill a missing picture with anything other than the light letter in the same frame.",
+      "**Don't** shrink the primary action below 48px, or the play and practice controls below 44px. The 36px letter keys belong to the rail only."
+    ]
+  }
+}

@@ -4,363 +4,163 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<title>Duang 的点读卡</title>
-<style>
-  :root {
-    --bg: #F3F0EA;
-    --ink: #1A1917;
-    --muted: #6E6C67;
-    --line: #E4E0D8;
-    --card: #FFFFFF;
-    --eng-tag-bg: #DCEEF4;
-    --eng-tag-ink: #1B5A6E;
-    --cn-tag-bg: #F3E4DF;
-    --cn-tag-ink: #7E3A2E;
-    --pad-x: clamp(18px, 4.5vw, 40px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
-    color: var(--ink);
-    background: var(--bg);
-    min-height: 100dvh;
-    line-height: 1.5;
-  }
-  .wrap {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: clamp(24px, 4vw, 48px) var(--pad-x) 72px;
-  }
-
-  /* Hero */
-  .hero {
-    position: relative;
-    padding: clamp(28px, 5vw, 48px) 0 clamp(32px, 5vw, 52px);
-    margin-bottom: clamp(8px, 2vw, 16px);
-  }
-  .hero-plate {
-    background: #EBE6DC;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: clamp(22px, 4vw, 36px) clamp(20px, 3.5vw, 32px);
-  }
-  .hero h1 {
-    font-size: clamp(34px, 7vw, 52px);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 1.08;
-    max-width: 10em;
-  }
-  .hero .sub {
-    margin-top: 14px;
-    font-size: clamp(15px, 1.6vw, 17px);
-    color: var(--muted);
-    max-width: 22em;
-    line-height: 1.55;
-  }
-  .hero-panel {
-    margin-top: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .hero-chip {
-    height: 28px;
-    padding: 0 12px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    background: #EAE6DE;
-    color: #4A4843;
-  }
-  .hero-chip.eng { background: var(--eng-tag-bg); color: var(--eng-tag-ink); }
-  .hero-chip.cn  { background: var(--cn-tag-bg);  color: var(--cn-tag-ink); }
-
-  section + section { margin-top: clamp(36px, 5vw, 56px); }
-  .sec-h {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  @media (min-width: 760px) {
-    .grid { grid-template-columns: 1fr 1fr; gap: 18px; }
-  }
-
-  a.card {
-    display: flex;
-    flex-direction: column;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 120ms ease, background 160ms ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  a.card:hover { background: #FBFBF8; }
-  a.card:active { transform: scale(0.985); }
-  a.card:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 3px;
-  }
-
-  .cover {
-    position: relative;
-    min-height: 132px;
-    padding: 22px 22px 18px;
-    display: flex;
-    align-items: flex-end;
-    background: var(--cover);
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.04);
-  }
-  .cover-letters {
-    font-size: clamp(40px, 9vw, 52px);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    color: var(--cover-ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .body {
-    padding: 16px 20px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    height: 24px;
-    padding: 0 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .tag.eng { background: var(--eng-tag-bg); color: var(--eng-tag-ink); }
-  .tag.cn  { background: var(--cn-tag-bg);  color: var(--cn-tag-ink); }
-  .date {
-    font-size: 12px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .title {
-    font-size: clamp(17px, 2.2vw, 19px);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    line-height: 1.3;
-  }
-  .preview {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.45;
-  }
-
-  .foot {
-    margin-top: clamp(48px, 7vw, 72px);
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .foot .credit {
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.55;
-    max-width: 42em;
-  }
-  .foot .credit p + p { margin-top: 4px; }
-  .foot .credit a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .foot .credit a:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    a.card { transition: none; }
-  }
-</style>
+<meta name="theme-color" content="#e4edf7">
+<title>Hello Duang</title>
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero">
-      <div class="hero-plate">
-        <h1>Duang 的点读卡</h1>
-        <p class="sub">点一张卡，打开就能听。英语单词与语文拼音，分栏收藏。</p>
-        <div class="hero-panel">
-          <span class="hero-chip eng">英语 3</span>
-          <span class="hero-chip cn">语文 3</span>
-        </div>
+<div class="aurora" aria-hidden="true"><span class="sun"></span><span class="sky"></span><span class="pool"></span></div>
+<a class="skip" href="#english">跳到课程</a>
+<header class="topbar">
+  <div class="bar">
+    <a class="brand" href="#top">Hello Duang</a>
+    <nav class="menu" aria-label="目录">
+      <a href="#english">English</a>
+      <a href="#chinese">语文</a>
+      <a href="eng/wordbank_az.html">Word Bank</a>
+      <a href="#about">关于</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap page" id="top">
+  <header class="hero">
+    <div class="hero-top">
+      <div class="hero-copy">
+        <h1>点开就能<span class="accent">听</span>。</h1>
+        <p class="lede">英语单词、英文故事、语文拼音，收在一起。点一张，打开就能跟读。</p>
       </div>
-    </header>
-
-    <section id="eng">
-      <h2 class="sec-h">英语</h2>
-      <div class="grid" id="eng-grid"></div>
-    </section>
-
-    <section id="cn">
-      <h2 class="sec-h">语文</h2>
-      <div class="grid" id="cn-grid"></div>
-    </section>
-
-    <div class="foot">
-      <p>Duang · 点读卡目录</p>
-      <div class="credit">
-        <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
-        <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
-      </div>
+      <a class="btn" href="eng/wordbank_az.html">开始学习
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     </div>
+    <section class="resume glass reveal" aria-labelledby="resume-title">
+      <div class="resume-copy">
+        <h2 id="resume-title">继续学习</h2>
+        <p class="resume-detail" data-resume-detail>还没听过。103 个单词，从字母 A 开始。</p>
+        <div class="meter" data-meter role="progressbar" aria-valuemin="0" aria-valuemax="103" aria-valuenow="0" aria-label="已听进度"><span></span></div>
+        <p class="resume-stat"><span data-progress data-total="103">已听 0 / 103</span></p>
+        <a class="go" data-resume href="eng/wordbank_az.html#LA">
+          <span data-resume-label>从 A 开始</span>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      <article class="word compact inset" data-word="seal" data-letter="S" data-n="eng/wordbank_az_audio/seal_n.mp3" data-s="eng/wordbank_az_audio/seal_s.mp3">
+        <button class="art has-img" type="button" data-rate="n" aria-label="播放 seal，正常语速">
+          <img src="eng/wordbank_az_img/seal.png" alt="" width="320" height="320">
+        </button>
+        <div class="copy">
+          <h3><span class="cap">s</span>eal</h3>
+          <p class="ipa">/sil/</p>
+          <p class="zh"><span class="zh-text">海豹</span></p>
+          <p class="oops">再点一次</p>
+        </div>
+        <div class="plays">
+          <button class="play play-n" type="button" data-rate="n" aria-label="正常语速播放 seal">
+            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M2.2 1.2v9.6L10.6 6z" fill="currentColor"/></svg>
+            <span class="bars" hidden><i></i><i></i><i></i></span>
+            <span>正常</span>
+          </button>
+          <button class="play play-s" type="button" data-rate="s" aria-label="慢速播放 seal">
+            <span class="bars" hidden><i></i><i></i><i></i></span>
+            <span>慢速</span>
+          </button>
+        </div>
+      </article>
+    </section>
+  </header>
+
+  <div class="subjects glass reveal">
+    <a href="#english">
+      <span><strong>English</strong><small>单词、故事、总复习</small></span>
+      <em data-eng-count>7 课</em>
+    </a>
+    <a href="#chinese">
+      <span><strong>语文</strong><small>拼音点读</small></span>
+      <em data-cn-count>4 课</em>
+    </a>
   </div>
 
+  <section class="block" id="english">
+    <h2 class="sec-h">English</h2>
+    <div class="lessons" id="eng-grid"></div>
+  </section>
+  <section class="block" id="chinese">
+    <h2 class="sec-h">语文</h2>
+    <div class="lessons" id="cn-grid"></div>
+  </section>
+
+  <footer class="foot" id="about">
+    <h2>关于</h2>
+    <p class="lead">Duang · 点读卡目录。打开一课，点一下就能听。听过哪些单词，只记在这台设备上。</p>
+    <div class="credit">
+      <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
+      <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
+    </div>
+  </footer>
+</main>
+<p class="sr" id="live" aria-live="polite"></p>
 <script>
 /* 新增卡片：在 CARDS 里加一行。
    subject: 'eng' | 'cn'
-   letters: 封面上的大字母 / 拼音
-   cover / coverInk: 封面底色与字色（平静、互不撞色）
+   kind: 单词 | 故事 | 拼音
    date: YYYY.MM.DD（英语按新→旧；语文用 order 课序）
 */
-const CARDS = [
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'Y Z',
-    title: 'Y / Z 单词点读',
-    preview: 'yacht · yogurt · yo-yo · zipper',
-    date: '2026.11.06', href: 'eng/yz.html',
-    cover: '#C9D9C8', coverInk: '#243528'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'Hurt',
-    title: '故事点读 · If I Get Hurt',
-    preview: 'laugh · hurt · fall · never · better',
-    date: '2026.11.06', href: 'eng/story_hurt.html',
-    cover: '#E6D3C3', coverInk: '#432A1A'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'A–Z',
-    title: 'Word Bank A–Z 总复习点读',
-    preview: '103 个单词 · 下周拼写检查',
-    date: '2026.11.13', href: 'eng/wordbank_az.html',
-    cover: '#F3DFC8', coverInk: '#4A2E14'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'Chase 1',
-    title: '故事点读 · Chase Loves to Play 1',
-    preview: '长音 a · gray · bay · sail · mail',
-    date: '2026.11.06', href: 'eng/story_chase1.html',
-    cover: '#CFD8CF', coverInk: '#26352B'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'Chase 2',
-    title: '故事点读 · Chase Loves to Play 2',
-    preview: '长音 a · sleigh · neigh · day · play',
-    date: '2026.11.06', href: 'eng/story_chase2.html',
-    cover: '#D9D2E0', coverInk: '#33293F'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'V W X',
-    title: 'V / W / X 单词点读',
-    preview: 'box · fox · vet · water · wax',
-    date: '2026.10.30', href: 'eng/vwx.html',
-    cover: '#C5D6E4', coverInk: '#1E3344'
-  },
-  {
-    subject: 'eng', tag: '英语',
-    letters: 'S T U',
-    title: 'S / T / U 单词点读',
-    preview: 'soap · sun · turtle · umbrella',
-    date: '2026.10.23', href: 'eng/stu.html',
-    cover: '#E4D5B8', coverInk: '#3D2E16'
-  },
-  {
-    subject: 'cn', tag: '语文',
-    letters: 'a o e',
-    title: '拼音第 1 课 · 单韵母 a o e i u ü',
-    preview: 'a · o · e · i · u · ü',
-    date: '2026.11.06', href: 'cn/py01.html', order: 1,
-    cover: '#E8CFC4', coverInk: '#4A261C'
-  },
-  {
-    subject: 'cn', tag: '语文',
-    letters: 'd t n l',
-    title: '拼音点读卡 · d t n l',
-    preview: '男声 / 女声可切换',
-    date: '2026.11.06', href: 'cn/dtnl.html', order: 2,
-    cover: '#D7CFC2', coverInk: '#352E24'
-  },
-  {
-    subject: 'cn', tag: '语文',
-    letters: 'j q x',
-    title: 'j q x 作业点读卡',
-    preview: '拼音练习',
-    date: '2026.11.06', href: 'cn/jqx.html', order: 3,
-    cover: '#D4C7D8', coverInk: '#3A2842'
-  },
-  {
-    subject: 'cn', tag: '语文',
-    letters: 'z c s',
-    title: 'z c s 作业点读卡',
-    preview: '拼音练习',
-    date: '2026.11.13', href: 'cn/zcs.html', order: 4,
-    cover: '#C9D6CC', coverInk: '#223A2B'
-  }
+var CARDS = [
+  { subject: 'eng', kind: '单词', letters: 'Y Z', title: 'Y / Z 单词点读', preview: 'yacht · yogurt · yo-yo · zipper', count: '8 个单词', date: '2026.11.06', href: 'eng/yz.html' },
+  { subject: 'eng', kind: '故事', letters: 'Hurt', title: '故事点读 · If I Get Hurt', preview: 'laugh · hurt · fall · never · better', count: '10 句', date: '2026.11.06', href: 'eng/story_hurt.html' },
+  { subject: 'eng', kind: '单词', letters: 'A–Z', title: 'Word Bank A–Z 总复习点读', preview: '103 个单词 · 下周拼写检查', count: '103 个单词', date: '2026.11.13', href: 'eng/wordbank_az.html', feature: true },
+  { subject: 'eng', kind: '故事', letters: 'Chase 1', title: '故事点读 · Chase Loves to Play 1', preview: '长音 a · gray · bay · sail · mail', count: '4 句', date: '2026.11.06', href: 'eng/story_chase1.html' },
+  { subject: 'eng', kind: '故事', letters: 'Chase 2', title: '故事点读 · Chase Loves to Play 2', preview: '长音 a · sleigh · neigh · day · play', count: '4 句', date: '2026.11.06', href: 'eng/story_chase2.html' },
+  { subject: 'eng', kind: '单词', letters: 'V W X', title: 'V / W / X 单词点读', preview: 'box · fox · vet · water · wax', count: '12 个单词', date: '2026.10.30', href: 'eng/vwx.html' },
+  { subject: 'eng', kind: '单词', letters: 'S T U', title: 'S / T / U 单词点读', preview: 'soap · sun · turtle · umbrella', count: '12 个单词', date: '2026.10.23', href: 'eng/stu.html' },
+  { subject: 'cn', kind: '拼音', letters: 'a o e', title: '拼音第 1 课 · 单韵母 a o e i u ü', preview: 'a · o · e · i · u · ü', count: '40 项', date: '2026.11.06', href: 'cn/py01.html', order: 1 },
+  { subject: 'cn', kind: '拼音', letters: 'd t n l', title: '拼音点读卡 · d t n l', preview: '男声 / 女声可切换', count: '26 项', date: '2026.11.06', href: 'cn/dtnl.html', order: 2 },
+  { subject: 'cn', kind: '拼音', letters: 'j q x', title: 'j q x 作业点读卡', preview: '拼音练习', count: '39 项', date: '2026.11.06', href: 'cn/jqx.html', order: 3 },
+  { subject: 'cn', kind: '拼音', letters: 'z c s', title: 'z c s 作业点读卡', preview: '拼音练习', count: '34 项', date: '2026.11.13', href: 'cn/zcs.html', order: 4 }
 ];
 
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+  });
+}
 function sortEng(a, b) { return b.date.localeCompare(a.date); }
 function sortCn(a, b) {
-  const ao = a.order ?? 999, bo = b.order ?? 999;
+  var ao = a.order || 999, bo = b.order || 999;
   if (ao !== bo) return ao - bo;
   return b.date.localeCompare(a.date);
 }
-
+function lesson(c) {
+  var feature = c.feature ? ' feature' : '';
+  var long = c.letters.length >= 6 ? ' long' : '';
+  var thumbs = c.feature
+    ? '<span class="thumbs" aria-hidden="true">' +
+      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/panda.png">' +
+      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/seal.png">' +
+      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/sun.png">' +
+      '</span>'
+    : '';
+  return '<a class="lesson glass reveal' + feature + '" href="' + esc(c.href) + '">' +
+    '<p class="mark' + long + '" aria-hidden="true">' + esc(c.letters) + '</p>' +
+    '<span class="lesson-copy">' +
+      '<span class="lesson-meta"><span class="tag">' + esc(c.kind) + '</span><span>' + esc(c.count) + '</span>' +
+      '<time datetime="' + esc(c.date.replace(/\./g, '-')) + '">' + esc(c.date) + '</time></span>' +
+      '<span class="lesson-title">' + esc(c.title) + '</span>' +
+      '<span class="preview">' + esc(c.preview) + '</span>' +
+    '</span>' + thumbs + '</a>';
+}
 function render() {
-  const eng = CARDS.filter(c => c.subject === 'eng').sort(sortEng);
-  const cn  = CARDS.filter(c => c.subject === 'cn').sort(sortCn);
-  const fill = (el, list) => {
-    el.innerHTML = list.map(c => `
-      <a class="card" href="${c.href}" style="--cover:${c.cover};--cover-ink:${c.coverInk}">
-        <div class="cover"><div class="cover-letters">${c.letters}</div></div>
-        <div class="body">
-          <div class="row">
-            <span class="tag ${c.subject}">${c.tag}</span>
-            <span class="date">${c.date}</span>
-          </div>
-          <div>
-            <div class="title">${c.title}</div>
-            <div class="preview">${c.preview}</div>
-          </div>
-        </div>
-      </a>`).join('');
-  };
-  fill(document.getElementById('eng-grid'), eng);
-  fill(document.getElementById('cn-grid'), cn);
-  // sync hero counts
-  document.querySelector('.hero-chip.eng').textContent = `英语 ${eng.length}`;
-  document.querySelector('.hero-chip.cn').textContent = `语文 ${cn.length}`;
+  var eng = CARDS.filter(function (c) { return c.subject === 'eng'; }).sort(sortEng);
+  var cn = CARDS.filter(function (c) { return c.subject === 'cn'; }).sort(sortCn);
+  document.getElementById('eng-grid').innerHTML = eng.map(lesson).join('');
+  document.getElementById('cn-grid').innerHTML = cn.map(lesson).join('');
+  var engCount = document.querySelector('[data-eng-count]');
+  var cnCount = document.querySelector('[data-cn-count]');
+  if (engCount) engCount.textContent = eng.length + ' 课';
+  if (cnCount) cnCount.textContent = cn.length + ' 课';
 }
 render();
 </script>
+<script src="assets/play.js"></script>
 </body>
 </html>
