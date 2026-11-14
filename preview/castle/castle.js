@@ -543,7 +543,7 @@
     { id: 'math', g: 5, t: TOWERS[2] }, { id: 'works', g: 6, t: TOWERS[3] }
   ];
   SPOTS.forEach(function (s) {
-    if (s.t) { var x0 = s.t.x0, z0 = s.t.z0; s.box = [x0 - 0.6, x0 + 5.6, 0, TOWER_TOP, z0 - 0.6, z0 + 5.6]; s.a = [x0 + 2.5, TOWER_TOP - 0.4, z0 + 2.5];
+    if (s.t) { var x0 = s.t.x0, z0 = s.t.z0; s.box = [x0 - 0.6, x0 + 5.6, 0, TOWER_TOP, z0 - 0.6, z0 + 5.6]; s.a = [x0 + 2.5, TOWER_TOP, z0 + 2.5];
       s.out = [x0 < 0 ? -1 : 1, z0 < 0 ? -1 : 1]; s.c = [x0 + 2.5, 9, z0 + 2.5]; }
   });
   var KEEP_BOX = [-3.6, 4.6, 0, 32, -3.6, 4.6];
@@ -649,19 +649,25 @@
       var lab = el._lab || (el._lab = el.querySelector('.lab'));
       if (!el._lw || el._lwW !== w) { el._lw = lab.offsetWidth; el._lh = lab.offsetHeight; el._lwW = w; }
       var lw = el._lw, lh = el._lh, r = s.rect, ap = project(cam, s.a, w, h);
-      var lx = ap[0] - lw / 2, ly;
-      if (s.door) ly = r[3] + 8;
-      else if (s.flag) { lx = r[0] - lw - 6; ly = (r[1] + r[3]) / 2 - lh / 2; if (lx < 6) { lx = r[2] + 6; } }
-      else ly = ap[1] - lh - 8;
-      lx = Math.max(6, Math.min(w - 6 - lw, lx)); ly = Math.max(6, Math.min(h - 6 - lh, ly));
-      if (s.vis >= 0.5) {
-        for (var k = 0; k < 4; k++) {
-          var hitR = placed.filter(function (q) { return lx < q[2] + 4 && lx + lw > q[0] - 4 && ly < q[3] + 4 && ly + lh > q[1] - 4; })[0];
-          if (!hitR) break;
-          ly = s.door ? hitR[3] + 4 : hitR[1] - lh - 4;
-          if (ly < 6) { ly = hitR[3] + 4; }
+      var lx, ly;
+      // Corner pennants: the pole's base (viewBox point 2,27 of 22×28) stands on the
+      // yellow cap. They stay on that point at every angle, so nothing nudges them aside.
+      if (s.t) { lx = ap[0] - lw * (2 / 22); ly = ap[1] - lh * (27 / 28); }
+      else {
+        lx = ap[0] - lw / 2;
+        if (s.door) ly = r[3] + 8;
+        else if (s.flag) { lx = r[0] - lw - 6; ly = (r[1] + r[3]) / 2 - lh / 2; if (lx < 6) { lx = r[2] + 6; } }
+        else ly = ap[1] - lh - 8;
+        lx = Math.max(6, Math.min(w - 6 - lw, lx)); ly = Math.max(6, Math.min(h - 6 - lh, ly));
+        if (s.vis >= 0.5) {
+          for (var k = 0; k < 4; k++) {
+            var hitR = placed.filter(function (q) { return lx < q[2] + 4 && lx + lw > q[0] - 4 && ly < q[3] + 4 && ly + lh > q[1] - 4; })[0];
+            if (!hitR) break;
+            ly = s.door ? hitR[3] + 4 : hitR[1] - lh - 4;
+            if (ly < 6) { ly = hitR[3] + 4; }
+          }
+          placed.push([lx, ly, lx + lw, ly + lh]);
         }
-        placed.push([lx, ly, lx + lw, ly + lh]);
       }
       s.lab = [lx, ly, lx + lw, ly + lh];
       var L = (lx - r[0]).toFixed(0), T = (ly - r[1]).toFixed(0);
