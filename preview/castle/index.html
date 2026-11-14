@@ -31,7 +31,7 @@
     <a href="./" aria-current="page"><span class="roll"><span>Castle</span><span aria-hidden="true">城堡</span></span></a>
   </nav>
   <div class="actions">
-    <button id="music-btn" class="icon" type="button" aria-pressed="false" aria-label="这页没有音乐 · No music on this page">
+    <button id="music-btn" class="icon" type="button" aria-pressed="false" aria-label="关掉音乐 · Mute the music">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M9.2 17.2V6.4l8.2-1.8v10.6"/>
         <circle cx="6.6" cy="17.2" r="2.35"/>
@@ -138,11 +138,59 @@
     pause.setAttribute('aria-pressed', String(on));
     pause.setAttribute('aria-label', on ? '让画面继续 · Resume the scene' : '让画面停一停 · Pause the scene');
   });
-  var music = document.getElementById('music-btn');
-  music.addEventListener('click', function () {
-    var on = music.getAttribute('aria-pressed') !== 'true';
-    music.setAttribute('aria-pressed', String(on));
+  var musicBtn = document.getElementById('music-btn');
+  var music = document.createElement('audio');
+  music.id = 'music';
+  music.loop = true;
+  music.preload = 'none';
+  music.volume = 0.7;
+  document.body.appendChild(music);
+  var musicOn = true;
+  try { musicOn = localStorage.getItem('hd-music') !== '0'; } catch (e) {}
+  function savePref() { try { localStorage.setItem('hd-music', musicOn ? '1' : '0'); } catch (e) {} }
+  function saveTime() {
+    try { if (music.currentTime > 0.25) sessionStorage.setItem('hd-music-t', String(music.currentTime)); } catch (e) {}
+  }
+  function restoreTime() {
+    try {
+      var t = Number(sessionStorage.getItem('hd-music-t'));
+      if (t > 0.25 && isFinite(t) && (!music.duration || t < music.duration - 0.3)) music.currentTime = t;
+    } catch (e) {}
+  }
+  function paint() {
+    musicBtn.setAttribute('aria-pressed', String(!musicOn));
+    musicBtn.setAttribute('aria-label', musicOn ? '关掉音乐 · Mute the music' : '打开音乐 · Play the music');
+  }
+  function ensure() {
+    if (music.getAttribute('src')) return;
+    music.preload = 'auto';
+    music.src = '../home/assets/icarus.m4a';
+    music.addEventListener('loadedmetadata', restoreTime, { once: true });
+  }
+  function playMusic() {
+    if (!musicOn) return;
+    ensure();
+    var attempt = music.play();
+    if (attempt) attempt.catch(function () {});
+  }
+  function onGesture(e) {
+    if (e.target && e.target.closest && e.target.closest('#music-btn')) return;
+    playMusic();
+  }
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (type) {
+    document.addEventListener(type, onGesture, true);
   });
+  musicBtn.addEventListener('click', function () {
+    musicOn = !musicOn;
+    savePref();
+    paint();
+    if (musicOn) playMusic();
+    else music.pause();
+  });
+  paint();
+  document.addEventListener('pagehide', saveTime);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) saveTime(); });
+  setInterval(saveTime, 1000);
 })();
 </script>
 <script src="castle.js"></script>

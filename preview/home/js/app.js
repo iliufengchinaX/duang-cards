@@ -308,7 +308,22 @@ function goHome() {
   kbLine = -1;
   glideTo(LS_MIN(), W / 2, H / 2, 1600);
 }
-let musicOn = true, filmStarted = false, musicArmed = false, restReady = false, photosStarted = false;
+let musicOn = true, filmStarted = false, restReady = false, photosStarted = false;
+try { musicOn = localStorage.getItem('hd-music') !== '0'; } catch (e) { /* private mode */ }
+function saveMusicPref() {
+  try { localStorage.setItem('hd-music', musicOn ? '1' : '0'); } catch (e) { /* ignore */ }
+}
+function saveMusicTime() {
+  try {
+    if ($music.currentTime > 0.25) sessionStorage.setItem('hd-music-t', String($music.currentTime));
+  } catch (e) { /* ignore */ }
+}
+function restoreMusicTime() {
+  try {
+    const t = Number(sessionStorage.getItem('hd-music-t'));
+    if (t > 0.25 && Number.isFinite(t) && (! $music.duration || t < $music.duration - 0.3)) $music.currentTime = t;
+  } catch (e) { /* ignore */ }
+}
 const poster = new Image();
 poster.crossOrigin = 'anonymous';
 poster.decoding = 'async';
@@ -362,19 +377,31 @@ function uploadChild(source) {
   childH = source.videoHeight || source.naturalHeight || 720;
   if (!childOn) { childOn = true; stillAt = intro; }
 }
-function armMusic() {
-  if (musicArmed) return;
-  musicArmed = true;
+function ensureMusic() {
+  if ($music.getAttribute('src')) return;
   $music.preload = 'auto';
   $music.src = './assets/icarus.m4a';
-  if (musicOn) $music.play().catch(() => {});
+  $music.addEventListener('loadedmetadata', restoreMusicTime, { once: true });
+}
+// Play has to be called in the same turn as a tap. armMusic used to run only after the
+// film could play, and its play() sat outside any gesture, so autoplay policy dropped it.
+function playMusic() {
+  if (!musicOn) return;
+  ensureMusic();
+  const attempt = $music.play();
+  if (attempt) attempt.catch(() => {});
+}
+function onMusicGesture(e) {
+  if (e.target && e.target.closest && e.target.closest('#music-btn')) return;
+  startFilm();
+  playMusic();
 }
 let photoStream = false, wantPhotos = false;
 function beginRest() {
   if (!restReady || photosStarted) return;
   photosStarted = true;
   if (!photos.length) { body.classList.add('loaded'); return; }
-  armMusic();
+  ensureMusic();
 }
 // Atlases stay off the first paint. They start only after the visitor walks into the curtain.
 function beginPhotos() {
@@ -390,16 +417,15 @@ function startFilm() {
   if (!filmStarted) startFilmFile();
   else if ($video.paused && !REDUCED) $video.play().catch(() => {});
 }
-function startMusic() {
-  startFilm();
-  if (!musicOn || !musicArmed) return;
-  $music.play().catch(() => {});
+function paintMusic() {
+  $musicBtn.setAttribute('aria-pressed', String(!musicOn));
+  $musicBtn.setAttribute('aria-label', musicOn ? '关掉音乐 · Mute the music' : '打开音乐 · Play the music');
 }
 function setMusic(on) {
   musicOn = on;
-  $musicBtn.setAttribute('aria-pressed', String(!on));
-  $musicBtn.setAttribute('aria-label', on ? '关掉音乐 · Mute the music' : '打开音乐 · Play the music');
-  if (on) $music.play().catch(() => {});
+  saveMusicPref();
+  paintMusic();
+  if (on) playMusic();
   else $music.pause();
 }
 function setPaused(v) {
@@ -425,8 +451,12 @@ $('#wordmark').addEventListener('click', e => { e.preventDefault(); goHome(); })
 $pause.addEventListener('click', () => setPaused(!paused));
 $musicBtn.addEventListener('click', () => setMusic(!musicOn));
 $music.volume = 0.7;
-addEventListener('pointerdown', startMusic);
-addEventListener('keydown', startMusic);
+paintMusic();
+// Capture phase: the curtain, the cue, and the menu can swallow the bubble.
+['pointerdown', 'touchend', 'click', 'keydown'].forEach(type => addEventListener(type, onMusicGesture, true));
+addEventListener('pagehide', saveMusicTime);
+addEventListener('visibilitychange', () => { if (document.hidden) saveMusicTime(); });
+setInterval(saveMusicTime, 1000);
 $child.addEventListener('click', () => { if (handLine >= 0) openStory(handLine, { x: project(glowX(), CH * 0.5).x }); });
 $child.addEventListener('pointerenter', () => body.classList.add('over-child'));
 $child.addEventListener('pointerleave', () => body.classList.remove('over-child'));
