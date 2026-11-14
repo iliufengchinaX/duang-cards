@@ -36,6 +36,7 @@ float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
 float fbm(vec2 p){ float s=0., a=.5; for(int k=0;k<4;k++){ s+=a*vnoise(p); p=p*2.03+17.1; a*=.5; } return s; }
 uint pcg(uint v){ uint s=v*747796405u+2891336453u; uint w=((s>>((s>>28u)+4u))^s)*277803737u; return (w>>22u)^w; }
 float h2(int a, int b){ return float(pcg(uint(a)*1664525u^pcg(uint(b)+1013904223u)))/4294967295.; }
+int imod(int a, int m){ int r=a%m; return r<0?r+m:r; }
 `;
 
 export const FIBRE_VS = COMMON + NOISE + `
@@ -113,6 +114,7 @@ void main(){
 export const FIBRE_FS = COMMON + NOISE + `
 uniform sampler2DArray uArr;
 uniform highp sampler2D uStory, uLayers;
+uniform float uCount;
 uniform float uGain, uMirror, uIntro, uW, uS, uDim, uOpen;
 uniform vec2 uSelect, uGlow, uRes;        // glow: x of the reaching hand, strength
 in float vU, vY, vX0, vSeed, vFlare, vSide, vHalfPx, vQuadPx, vNorm, vCl, vCl2, vSpacePx, vPpu, vXw;
@@ -159,12 +161,12 @@ void main(){
   if(reveal>.002 && vFlare<=0. && vN>=1.){
     float sc=(uCH-y)-vPhase;
     float slot=floor(sc/uS), local=sc-slot*uS;
-    int n=max(int(vN+.5),1);
-    int ch=int(mod(slot,float(n)));
-    vec4 L=texelFetch(uStory,at(vId*3+1+ch/4),0);
-    int cc=ch-(ch/4)*4;
-    float layer=cc==0?L.x:cc==1?L.y:cc==2?L.z:L.w;
-    float aspect=texelFetch(uLayers,ivec2(int(layer),0),0).x;
+    // Same rule as streamLayer() in stories.js: one picture per cell of a 14×14 block.
+    int raw=imod(int(slot),14)*14+imod(vId,14);
+    int layer=imod(raw*137+41,196);
+    int n=max(int(uCount+.5),1);
+    if(layer>=n) layer=imod(layer,n);
+    float aspect=texelFetch(uLayers,ivec2(layer,0),0).x;
     float h=uW/aspect;
     float vp=(local-(uS-h)*.5)/h, up=.5+vXw/uW;
     float slotPx=uS*vPpu;

@@ -16,7 +16,7 @@ import { clamp, smooth, damp, mulberry } from './math.js';
 import { createGLHelpers } from './gl.js';
 import { loadCatalog } from './catalog.js';
 import { createPhotoArray, streamTextures } from './photos.js';
-import { buildStories, NF } from './stories.js';
+import { buildStories, NF, STREAM_TH, streamLayer } from './stories.js';
 import { IDLE, TOUCHES, DROPS, FIBRE_VS, FIBRE_FS, FLOOR_VS, FLOOR_FS, CHILD_VS, CHILD_FS, POST_VS, DOWN_FS, UP_FS, BLUR_FS, COMPOSITE_FS } from './shaders.js';
 
 const canvas = document.getElementById('stream');
@@ -189,7 +189,7 @@ function buildFibres() {
   const rows = Math.ceil(NF / 1024), fs = new Float32Array(1024 * rows * 4);
   for (let i = 0; i < NF; i++) {
     fib.x0[i] = -CW / 2 + (i + 0.5 + (rng() - 0.5) * 0.2) * SPACING;
-    fib.seed[i] = rng(); fib.speed[i] = 0.8 + rng() * 0.45; fib.phase[i] = rng() * 50 * SLOT;
+    fib.seed[i] = rng(); fib.speed[i] = 0.8 + rng() * 0.45; rng(); fib.phase[i] = 0;
     fs.set([fib.x0[i], fib.seed[i], fib.speed[i], rng()], i * 4);
     const pick = h2(i, 4242);
     fib.strand[i] = pick > 0.925 ? 1 : pick > 0.78 ? 0.32 : 0;
@@ -640,8 +640,9 @@ function step(dt, now) {
     // The thread under the hand eases to a stop: its photographs and its light hold still.
     fib.hold[i] += ((i === line ? 1 : 0) - fib.hold[i]) * kHold;
     const go = dt * rate * (1 - fib.hold[i]);
-    const period = SLOT * Math.max(1, stories[i].chapters.length);
-    fib.phase[i] = (fib.phase[i] + go * fib.speed[i]) % period;
+    // One shared pace, so neighbouring threads stay in the same 14-slot block.
+    const period = SLOT * STREAM_TH;
+    fib.phase[i] = (fib.phase[i] + go) % period;
     fib.flow[i] = (fib.flow[i] + go) % 4000;
     if (fib.strand[i] && rainOn) landing(i, viewL, viewR);
     dyn[i * 4] = fib.o[i]; dyn[i * 4 + 1] = fib.py[i]; dyn[i * 4 + 2] = fib.phase[i]; dyn[i * 4 + 3] = fib.flow[i];
@@ -766,6 +767,7 @@ function drawWorld(rt, mirror) {
   gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, arrTex); gl.uniform1i(u.uArr, 4);
   gl.uniform1f(u.uMinPx, mirror ? 1.6 : 1.0);
   gl.uniform1f(u.uSpacing, SPACING); gl.uniform1f(u.uW, PHOTO_W); gl.uniform1f(u.uS, SLOT);
+  gl.uniform1f(u.uCount, photos.length);
   gl.uniform1f(u.uGain, (mirror ? 0.55 : 0.78) * (1.05 - 0.2 * zt));
   gl.uniform4f(u.uHover, hover.line, hover.t, 0, 0);
   gl.uniform1f(u.uDim, 0.22 * hover.t);
@@ -1001,7 +1003,7 @@ async function boot() {
   requestAnimationFrame(frame);
   view.route(); // a shared link opens straight into its story
   beginRest();
-  window.__undertow = { cam, stories, fib, get hover() { return hover; }, get handLine() { return handLine; }, pickLine, chapterAt, project, unproject, openStory, zoomBy, enter, LS_MIN, LS_MAX, get slot() { return SLOT; } };
+  window.__undertow = { cam, stories, fib, photos, streamLayer, get hover() { return hover; }, get handLine() { return handLine; }, pickLine, chapterAt, project, unproject, openStory, zoomBy, enter, LS_MIN, LS_MAX, get slot() { return SLOT; }, get spacing() { return SPACING; } };
   window.__gate = gate;
   const shot = SHOTS[QS.get('shot')];
   if (QS.has('play') || shot != null) {

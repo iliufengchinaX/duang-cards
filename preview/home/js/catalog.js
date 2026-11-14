@@ -74,11 +74,5 @@ export async function loadCatalog() {
     return response.json();
   };
   const [catalog, data] = await Promise.all([read('./photos.json'), read('./stories.json')]);
-  const result = validateCatalog(catalog, data);
-  // Phones get a lighter stream: every authored photograph, then every other one of the rest.
-  if (matchMedia('(pointer: coarse)').matches && result.photos.length > 64) {
-    const used = new Set(result.authored.flatMap(s => s.chapters.map(c => String(c.photo))));
-    result.photos = result.photos.filter((p, i) => used.has(p.id) || i % 2 === 0);
-  }
-  return result;
+  return validateCatalog(catalog, data);
 }

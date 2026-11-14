@@ -1,6 +1,16 @@
-import { clamp, mulberry } from './math.js';
+import { clamp, mod, mulberry } from './math.js';
 export const NF = 2400;
 export const MAX_CHAPTERS = 8;
+
+// The curtain shows each photograph once inside a 14 by 14 block, then only again a full
+// block away. Fourteen threads and fourteen slots is wider than a phone or a desktop
+// window once the pictures are large enough to read, so a screenful does not repeat.
+export const STREAM_TW = 14;
+export const STREAM_TH = 14;
+export function streamLayer(line, slot) {
+  const raw = mod(slot, STREAM_TH) * STREAM_TW + mod(line, STREAM_TW);
+  return mod(raw * 137 + 41, STREAM_TW * STREAM_TH);
+}
 
 // Every thread gets a story. Authored stories in stories.json claim their lines; every other
 // line is a placeholder drawn from the photographs, repeats welcome.
