@@ -530,22 +530,20 @@
     ' col*=lit*vAO;',
     ' col=pow(col,vec3(0.96));',
     ' float dd=length(vW.xz);float fd=smoothstep(40.,200.,dd);',
-    ' col=mix(col,vec3(.83,.87,.91),fd*0.7);',
-    ' float mist=(1.-smoothstep(-26.,2.,vW.y))*smoothstep(27.,42.,dd);',
-    ' float band=exp(-pow((vW.y-4.-fd*10.)/3.5,2.))*smoothstep(40.,80.,dd)*0.6;',
-    ' col=mix(col,vec3(.965,.962,.95),clamp(mist*0.92+band,0.,1.));',
+    ' col=mix(col,vec3(.74,.86,.62),fd*0.16);',
+    ' float mist=(1.-smoothstep(-8.,6.,vW.y))*smoothstep(40.,90.,dd);',
+    ' float band=exp(-pow((vW.y+1.)/8.,2.))*smoothstep(55.,110.,dd)*0.12;',
+    ' col=mix(col,vec3(.90,.95,.86),clamp(mist*0.22+band,0.,0.28));',
     ' gl_FragColor=vec4(col,1.);',
     '}'].join('\n');
 
   /* ---------- 热区：四座角楼 + 主堡旗 + 正门（标签跟着建筑走，被主堡挡住就藏起来） ---------- */
   var SPOTS = [
     { id: 'eng', g: 3, t: TOWERS[0] }, { id: 'cn', g: 4, t: TOWERS[1] },
-    { id: 'math', g: 5, t: TOWERS[2] }, { id: 'works', g: 6, t: TOWERS[3] },
-    { id: 'about', g: 7, door: true, n: [0, 0, 1], box: [-1.3, 2.3, -0.2, 5.2, 11.4, 12.2], a: [0.5, 2.2, 12.1] },
-    { id: 'album', g: 8, flag: true }
+    { id: 'math', g: 5, t: TOWERS[2] }, { id: 'works', g: 6, t: TOWERS[3] }
   ];
   SPOTS.forEach(function (s) {
-    if (s.t) { var x0 = s.t.x0, z0 = s.t.z0; s.box = [x0 - 0.6, x0 + 5.6, 0, TOWER_TOP, z0 - 0.6, z0 + 5.6]; s.a = [x0 + 2.5, TOWER_TOP - 0.4, z0 + 2.5];
+    if (s.t) { var x0 = s.t.x0, z0 = s.t.z0; s.box = [x0 - 0.6, x0 + 5.6, 0, TOWER_TOP, z0 - 0.6, z0 + 5.6]; s.a = [x0 + 2.5, TOWER_TOP, z0 + 2.5];
       s.out = [x0 < 0 ? -1 : 1, z0 < 0 ? -1 : 1]; s.c = [x0 + 2.5, 9, z0 + 2.5]; }
   });
   var KEEP_BOX = [-3.6, 4.6, 0, 32, -3.6, 4.6];
@@ -560,7 +558,7 @@
     return true;
   }
   var LINES = {
-    tap: ['Hi! 点角楼试试', 'Hello! 我是 Duang', 'Duang~!', '四座角楼，四个房间', "Let's go!", '旗子后面是家庭相册', '盾牌防御！Shield up!'],
+    tap: ['Hi! 点角楼试试', 'Hello! 我是 Duang', 'Duang~!', '四座角楼，四个房间', "Let's go!", '盾牌防御！Shield up!'],
     hint: ['点这座试试！', 'Try this one!', '这里面有好玩的', 'Tap here!'],
     go: ['出发！', 'Go go go!', '我陪你去！']
   };
@@ -586,13 +584,18 @@
   var fast = false;
   try { fast = sessionStorage.getItem('hd-built') === '1'; sessionStorage.setItem('hd-built', '1'); } catch (e) { }
   var INTRO = REDUCED ? 0 : (fast ? 1.3 : 3.0);
+  var VEIL = Q.has('veil'), ARRIVED = Q.has('arrived');
+  if (VEIL || ARRIVED) { INTRO = 0; state.yaw = FB_YAW; state.builtCam = true; state.built = true; }
   if (REDUCED || !gl) state.yaw = FB_YAW;
 
   function camera(w, h) {
     var asp = w / h, fov = 0.5, tf = Math.tan(fov / 2);
-    var halfW = asp < 0.8 ? 16.5 : 25, halfH = asp < 0.8 ? 25.5 : 26;
+    var narrow = asp < 0.8;
+    // Far enough that the keep flag sits under the nav and the whole island,
+    // including the front path, sits above the hint bar.
+    var halfW = narrow ? 28 : 27, halfH = narrow ? 32 : 36;
     var dist = Math.max(halfW / (tf * asp), halfH / tf) + 12;
-    var tgt = [0.5, asp < 0.8 ? 17.5 : 17, 2];
+    var tgt = [0.5, narrow ? 15.5 : 15, 2];
     var F = state.focus;
     if (F) { var fp = F.hero ? heroes[F.hero].pos : F.tgt; tgt = [fp[0], fp[1] + (F.dy || 0), fp[2]]; dist = F.dist; }
     var cp = Math.cos(state.pitch);
@@ -649,19 +652,25 @@
       var lab = el._lab || (el._lab = el.querySelector('.lab'));
       if (!el._lw || el._lwW !== w) { el._lw = lab.offsetWidth; el._lh = lab.offsetHeight; el._lwW = w; }
       var lw = el._lw, lh = el._lh, r = s.rect, ap = project(cam, s.a, w, h);
-      var lx = ap[0] - lw / 2, ly;
-      if (s.door) ly = r[3] + 8;
-      else if (s.flag) { lx = r[0] - lw - 6; ly = (r[1] + r[3]) / 2 - lh / 2; if (lx < 6) { lx = r[2] + 6; } }
-      else ly = ap[1] - lh - 8;
-      lx = Math.max(6, Math.min(w - 6 - lw, lx)); ly = Math.max(6, Math.min(h - 6 - lh, ly));
-      if (s.vis >= 0.5) {
-        for (var k = 0; k < 4; k++) {
-          var hitR = placed.filter(function (q) { return lx < q[2] + 4 && lx + lw > q[0] - 4 && ly < q[3] + 4 && ly + lh > q[1] - 4; })[0];
-          if (!hitR) break;
-          ly = s.door ? hitR[3] + 4 : hitR[1] - lh - 4;
-          if (ly < 6) { ly = hitR[3] + 4; }
+      var lx, ly;
+      // Corner pennants: the pole's base (viewBox point 2,27 of 22×28) stands on the
+      // yellow cap. They stay on that point at every angle, so nothing nudges them aside.
+      if (s.t) { lx = ap[0] - lw * (2 / 22); ly = ap[1] - lh * (27 / 28); }
+      else {
+        lx = ap[0] - lw / 2;
+        if (s.door) ly = r[3] + 8;
+        else if (s.flag) { lx = r[0] - lw - 6; ly = (r[1] + r[3]) / 2 - lh / 2; if (lx < 6) { lx = r[2] + 6; } }
+        else ly = ap[1] - lh - 8;
+        lx = Math.max(6, Math.min(w - 6 - lw, lx)); ly = Math.max(6, Math.min(h - 6 - lh, ly));
+        if (s.vis >= 0.5) {
+          for (var k = 0; k < 4; k++) {
+            var hitR = placed.filter(function (q) { return lx < q[2] + 4 && lx + lw > q[0] - 4 && ly < q[3] + 4 && ly + lh > q[1] - 4; })[0];
+            if (!hitR) break;
+            ly = s.door ? hitR[3] + 4 : hitR[1] - lh - 4;
+            if (ly < 6) { ly = hitR[3] + 4; }
+          }
+          placed.push([lx, ly, lx + lw, ly + lh]);
         }
-        placed.push([lx, ly, lx + lw, ly + lh]);
       }
       s.lab = [lx, ly, lx + lw, ly + lh];
       var L = (lx - r[0]).toFixed(0), T = (ly - r[1]).toFixed(0);
@@ -727,18 +736,31 @@
   var tex = null;
   (function loadAtlas() {
     var img = new Image(), tried = false;
+    img.crossOrigin = 'anonymous';
+    function usePng() { if (tried) return; tried = true; img.src = 'assets/duang-sprites.png'; }
     img.onload = function () {
-      tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      window.__spritesReady = img.currentSrc || img.src;
+      var t = gl.createTexture();
+      try {
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        tex = t;
+        window.__spritesReady = img.currentSrc || img.src;
+      } catch (e) {
+        console.warn(e);
+        gl.deleteTexture(t);
+        tex = null;
+        usePng();
+      } finally {
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      }
     };
-    img.onerror = function () { if (!tried) { tried = true; img.src = 'assets/duang-sprites.png'; } };   // 不支持 WebP 的老浏览器用 PNG
+    img.onerror = usePng;
     img.src = 'assets/duang-sprites.webp';
   })();
   function hero(key, pos) { return { key: key, pos: pos.slice(), drawPos: pos.slice(), flip: false, roll: 0, sx: 1, sy: 1, alpha: 1, shim: 0, halo: 0, bright: 1, shadow: 1 }; }
@@ -893,7 +915,7 @@
     if (!CB.side) CB.side = want;
     if (Q.has('debug')) window.__dbgk = [Math.round(fc[0]), Math.round(kc[0]), want];
     if (want !== CB.side && !CB.sw) CB.sw = { from: CB.side, to: want, t: 0 };
-    var X = mob ? 10.6 : 15.5, Y = mob ? 23.5 : 22, hi = (FLAG.box[3]) + 4.5;
+    var X = mob ? 7.2 : 15.5, Y = mob ? 21.5 : 22, hi = (FLAG.box[3]) + 4.5;
     var lat, y = Y, back = 0;
     if (CB.sw) {
       CB.sw.t += dt / (REDUCED ? 0.01 : 2.6);
@@ -922,7 +944,7 @@
     var target = [0.5 + RIGHT[0] * lat + FWD[0] * depth, y + CB.offY, 0.5 + RIGHT[2] * lat + FWD[2] * depth];
     if (appear < 1) target = [target[0] + RIGHT[0] * CB.side * (1 - appear) * 12, target[1] + (1 - appear) * 10, target[2] + RIGHT[2] * CB.side * (1 - appear) * 12];
     // 保底：投影到屏幕后，和主堡、旗子有重叠就往外 / 往下挪
-    var FS_ = SPOTS[5].rect, KR = rectOf(cam, [KEEP_BOX[0] - 0.5, KEEP_BOX[1] + 0.5, 0, KEEP_TOP, KEEP_BOX[4] - 0.5, KEEP_BOX[5] + 0.5], w, h);
+    var fb = FLAG.box, FS_ = rectOf(cam, [fb[0] - 0.4, fb[1] + 0.2, fb[2] - 0.4, fb[3], fb[4] - 0.3, fb[5] + 0.3], w, h), KR = rectOf(cam, [KEEP_BOX[0] - 0.5, KEEP_BOX[1] + 0.5, 0, KEEP_TOP, KEEP_BOX[4] - 0.5, KEEP_BOX[5] + 0.5], w, h);
     var tmp = { key: 'combat', sx: 1, sy: 1, drawPos: target };
     for (var it = 0; it < 12 && !CB.sw; it++) {
       tmp.drawPos = target; var q = spriteQuad(tmp, cam, w, h), hit = false;
@@ -999,6 +1021,7 @@
 
   function frame(now) {
     var dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    if (document.documentElement.classList.contains('paused-scene')) dt = 0;
     var r = stage.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
     if (w !== lastW || h !== lastH) { lastW = w; lastH = h; canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); gl.viewport(0, 0, canvas.width, canvas.height); }
     var t = INTRO === 0 ? 99 : (now - state.t0) / 1000 * speed;
@@ -1044,6 +1067,9 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  window.__tick = function (n) {
+    for (var i = 0; i < (n || 1); i++) frame(prev + 33.4);
+  };
   window.__castle = state; window.__heroes = heroes; window.__CB = CB; window.__say = say; window.__spots = SPOTS;
 
   addEventListener('pageshow', function (e) { if (e.persisted) { state.glowTarget.fill(0); state.glow.fill(0); state.doorTarget = 0; state.door = 0; [].forEach.call(document.querySelectorAll('.spot.press'), function (el) { el.classList.remove('press'); }); } });
