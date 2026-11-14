@@ -22,12 +22,12 @@ async function bitmap(src) {
   try {
     const res = await fetch(src);
     if (!res.ok) throw new Error(`Could not load photo: ${src}`);
-    return await createImageBitmap(await res.blob(), { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'low' });
+    return await createImageBitmap(await res.blob(), { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'high' });
   } catch (err) {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = src; });
-    return await createImageBitmap(img, { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'low' });
+    return await createImageBitmap(img, { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'high' });
   }
 }
 
