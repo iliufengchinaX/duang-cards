@@ -590,9 +590,12 @@
 
   function camera(w, h) {
     var asp = w / h, fov = 0.5, tf = Math.tan(fov / 2);
-    var halfW = asp < 0.8 ? 16.5 : 25, halfH = asp < 0.8 ? 25.5 : 26;
+    var narrow = asp < 0.8;
+    // Far enough that the keep flag sits under the nav and the whole island,
+    // including the front path, sits above the hint bar.
+    var halfW = narrow ? 28 : 27, halfH = narrow ? 32 : 36;
     var dist = Math.max(halfW / (tf * asp), halfH / tf) + 12;
-    var tgt = [0.5, asp < 0.8 ? 17.5 : 17, 2];
+    var tgt = [0.5, narrow ? 15.5 : 15, 2];
     var F = state.focus;
     if (F) { var fp = F.hero ? heroes[F.hero].pos : F.tgt; tgt = [fp[0], fp[1] + (F.dy || 0), fp[2]]; dist = F.dist; }
     var cp = Math.cos(state.pitch);
