@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b0805">
+  <meta name="description" content="Hello Duang. A curtain of golden light; every thread is a few days of our family.">
+  <title>Hello Duang</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0805'/%3E%3Cpath d='M9 6v19M13 6v21M16 6v22M19 6v21M23 6v19' stroke='%23d9b27a' stroke-width='1.2' stroke-linecap='round' stroke-dasharray='2 3'/%3E%3C/svg%3E">
+  <link rel="preload" href="./assets/duang-poster.jpg" as="image" fetchpriority="high">
+  <link rel="preload" href="./fonts/cormorant-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/jost-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="stream" tabindex="0" aria-label="一帘金色的光，每一缕都是一段日子。左右方向键在光缕间移动，回车展开；滚动或双指缩放走近。A curtain of light; every thread is a story. Arrow keys move between threads, Enter opens one, scroll or pinch to walk closer."></canvas>
+  <p id="error" role="alert" hidden></p>
+  <div id="loader" aria-hidden="true"><i></i></div>
+  <div id="meter" aria-hidden="true"><i></i></div>
+  <p id="announce" class="sr-only" aria-live="polite"></p>
+
+  <video id="child-video" muted loop playsinline webkit-playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+  <audio id="music" loop preload="none"></audio>
+  <button id="child" type="button" aria-label="端端的百日 · Open Duang's first hundred days"></button>
+
+  <header class="top">
+    <a id="wordmark" class="wordmark rise" href="./" style="--i:0">
+      <span class="wm-en">Hello Duang</span>
+    </a>
+    <nav class="nav rise" style="--i:1" aria-label="站点 · Site">
+      <a id="home-link" href="./" aria-current="page"><span class="roll"><span>Home</span><span aria-hidden="true">首页</span></span></a>
+      <a href="../castle/" data-castle><span class="roll"><span>Castle</span><span aria-hidden="true">城堡</span></span></a>
+    </nav>
+    <div class="actions rise" style="--i:2">
+      <button id="music-btn" class="icon" type="button" aria-pressed="false" aria-label="关掉音乐 · Mute the music">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.2 17.2V6.4l8.2-1.8v10.6"/>
+          <circle cx="6.6" cy="17.2" r="2.35"/>
+          <path class="slash" d="M5 5.5 19 18.5"/>
+        </svg>
+      </button>
+      <button id="pause" class="icon" type="button" aria-pressed="false" aria-label="让光停一停 · Pause the light">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z"/></svg>
+      </button>
+      <button id="menu-btn" class="icon" type="button" aria-expanded="false" aria-controls="menu" aria-label="菜单 · Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h16M4 16h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <footer class="foot">
+    <div class="foot-left">
+      <button id="scroll-cue" class="cue rise" type="button" style="--i:3">
+        <span>Scroll to explore · 滚动探索</span><i aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="foot-right rise" style="--i:4">
+      <p id="count"></p>
+    </div>
+  </footer>
+
+  <div id="cursor" aria-hidden="true"></div>
+  <div id="ring" aria-hidden="true"></div>
+  <div id="tip" aria-hidden="true"><div class="tip-body"><b></b><span></span></div></div>
+
+  <div id="menu" role="dialog" aria-modal="true" aria-label="菜单 · Menu">
+    <button class="menu-close icon" type="button" aria-label="关闭 · Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <ol class="menu-list">
+      <li style="--i:0"><a href="./" class="menu-home"><span class="n">01</span><span class="en">Home</span><span class="zh">首页</span></a></li>
+      <li style="--i:1"><a href="../castle/" data-castle><span class="n">02</span><span class="en">Castle</span><span class="zh">城堡</span></a></li>
+    </ol>
+    <p class="menu-foot">滚动走近光帘，点一缕光展开它的照片 · Scroll into the curtain, touch a thread to open its photographs.</p>
+  </div>
+
+  <section id="story" role="dialog" aria-modal="true" aria-labelledby="story-title" hidden>
+    <div class="story-backdrop" aria-hidden="true"></div>
+    <button class="story-side prev" type="button" aria-label="上一缕 · Previous thread"></button>
+    <button class="story-side next" type="button" aria-label="下一缕 · Next thread"></button>
+    <div class="story-thread" aria-hidden="true"></div>
+    <div class="story-flow"><div class="strip"></div></div>
+    <button class="story-back" type="button" aria-label="回到光帘 · Back to the curtain">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></svg>
+    </button>
+    <p class="story-title" id="story-title"></p>
+    <div class="lightbox" hidden>
+      <p class="lb-cap"></p>
+    </div>
+  </section>
+
+  <iframe id="castle-frame" title="" aria-hidden="true" tabindex="-1"></iframe>
+  <div id="flyer" aria-hidden="true"></div>
+  <canvas id="spark" aria-hidden="true"></canvas>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

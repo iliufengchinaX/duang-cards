@@ -530,10 +530,10 @@
     ' col*=lit*vAO;',
     ' col=pow(col,vec3(0.96));',
     ' float dd=length(vW.xz);float fd=smoothstep(40.,200.,dd);',
-    ' col=mix(col,vec3(.83,.87,.91),fd*0.7);',
-    ' float mist=(1.-smoothstep(-26.,2.,vW.y))*smoothstep(27.,42.,dd);',
-    ' float band=exp(-pow((vW.y-4.-fd*10.)/3.5,2.))*smoothstep(40.,80.,dd)*0.6;',
-    ' col=mix(col,vec3(.965,.962,.95),clamp(mist*0.92+band,0.,1.));',
+    ' col=mix(col,vec3(.74,.86,.62),fd*0.16);',
+    ' float mist=(1.-smoothstep(-8.,6.,vW.y))*smoothstep(40.,90.,dd);',
+    ' float band=exp(-pow((vW.y+1.)/8.,2.))*smoothstep(55.,110.,dd)*0.12;',
+    ' col=mix(col,vec3(.90,.95,.86),clamp(mist*0.22+band,0.,0.28));',
     ' gl_FragColor=vec4(col,1.);',
     '}'].join('\n');
 
@@ -586,7 +586,13 @@
   var fast = false;
   try { fast = sessionStorage.getItem('hd-built') === '1'; sessionStorage.setItem('hd-built', '1'); } catch (e) { }
   var INTRO = REDUCED ? 0 : (fast ? 1.3 : 3.0);
+  var VEIL = Q.has('veil'), ARRIVED = Q.has('arrived');
+  var showFly = !VEIL;
+  if (VEIL || ARRIVED) { INTRO = 0; state.yaw = FB_YAW; state.builtCam = true; state.built = true; }
   if (REDUCED || !gl) state.yaw = FB_YAW;
+  addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'hd-land') showFly = true;
+  });
 
   function camera(w, h) {
     var asp = w / h, fov = 0.5, tf = Math.tan(fov / 2);
@@ -893,7 +899,7 @@
     if (!CB.side) CB.side = want;
     if (Q.has('debug')) window.__dbgk = [Math.round(fc[0]), Math.round(kc[0]), want];
     if (want !== CB.side && !CB.sw) CB.sw = { from: CB.side, to: want, t: 0 };
-    var X = mob ? 10.6 : 15.5, Y = mob ? 23.5 : 22, hi = (FLAG.box[3]) + 4.5;
+    var X = mob ? 7.2 : 15.5, Y = mob ? 21.5 : 22, hi = (FLAG.box[3]) + 4.5;
     var lat, y = Y, back = 0;
     if (CB.sw) {
       CB.sw.t += dt / (REDUCED ? 0.01 : 2.6);
@@ -956,7 +962,11 @@
     if (onLab !== heroHit._low) { heroHit._low = onLab; heroHit.style.zIndex = onLab ? '5' : ''; }
     heroHit.style.width = ww.toFixed(0) + 'px'; heroHit.style.height = hh.toFixed(0) + 'px';
     heroHit.style.transform = 'translate3d(' + hr[0].toFixed(1) + 'px,' + hr[1].toFixed(1) + 'px,0)';
-    heroHit.classList.toggle('on', appear >= 1 && !!tex && !CB.sw);
+    heroHit.classList.toggle('on', appear >= 1 && !!tex && !CB.sw && showFly);
+    if (VEIL && window.parent && window.parent !== window) {
+      var vis = spriteQuad(B, cam, w, h);
+      window.parent.postMessage({ type: 'hd-fly', x: vis[0], y: vis[1], w: vis[2] - vis[0], h: vis[3] - vis[1] }, '*');
+    }
     var bw2 = (bubble.firstChild.offsetWidth || 120) / 2 + 8;
     var bX = Math.max(bw2, Math.min(w - bw2, bx)), bY = Math.max(58, hr[1] + 4);
     if (CB.sw) {   // 绕到主堡后面时，气泡先挂到要去的那一边，不压主堡和旗子
@@ -991,6 +1001,7 @@
     list.forEach(function (it) { var H = it[1]; if (H.shadow) quad(H, 2, 1, Math.max(0, 1 - H.pos[1] * 0.4) * Math.min(1, H.sx)); });
     list.forEach(function (it) {
       var H = it[1];
+      if (H === heroes.combat && !showFly) return;
       if (H.halo > 0.01) { gl.uniform3f(US.uTint, 0.45, 0.8, 1.0); quad(H, 1, 1.1, 0.55 * H.halo); }
       quad(H, 0, 1, 1);
     });
@@ -999,6 +1010,7 @@
 
   function frame(now) {
     var dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    if (document.documentElement.classList.contains('paused-scene')) dt = 0;
     var r = stage.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
     if (w !== lastW || h !== lastH) { lastW = w; lastH = h; canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); gl.viewport(0, 0, canvas.width, canvas.height); }
     var t = INTRO === 0 ? 99 : (now - state.t0) / 1000 * speed;
@@ -1044,6 +1056,9 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  window.__tick = function (n) {
+    for (var i = 0; i < (n || 1); i++) frame(prev + 33.4);
+  };
   window.__castle = state; window.__heroes = heroes; window.__CB = CB; window.__say = say; window.__spots = SPOTS;
 
   addEventListener('pageshow', function (e) { if (e.persisted) { state.glowTarget.fill(0); state.glow.fill(0); state.doorTarget = 0; state.door = 0; [].forEach.call(document.querySelectorAll('.spot.press'), function (el) { el.classList.remove('press'); }); } });
