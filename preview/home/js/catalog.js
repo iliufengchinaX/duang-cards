@@ -12,8 +12,15 @@ export function validateCatalog(catalog, data) {
     if (data.stories.length) fail('stories.json references photos but photos.json is empty.');
     const journal = data.journal ?? [];
     if (!Array.isArray(journal)) fail('journal must be an array of date/text entries.');
-    return { photos: [], authored: [], journal };
+    return { photos: [], authored: [], journal, atlases: [] };
   }
+  const atlases = Array.isArray(catalog.atlases) ? catalog.atlases : [];
+  atlases.forEach((a, i) => {
+    if (!text(a?.src) || !/^assets\/photos\/[\w./-]+$/.test(a.src) || a.src.split('/').includes('..')) {
+      fail(`Atlas ${i} needs a local path under assets/photos/.`);
+    }
+    if (!(a.w > 0) || !(a.h > 0)) fail(`Atlas ${i} needs its pixel size.`);
+  });
   const ids = new Set();
   const photos = catalog.photos.map(p => {
     if (!text(p?.id) || ids.has(p.id)) fail(`Missing or duplicate photo id: ${p?.id}`);
@@ -23,6 +30,16 @@ export function validateCatalog(catalog, data) {
     if (p.thumb != null && (!/^assets\/photos\/[\w./-]+$/.test(p.thumb) || p.thumb.split('/').includes('..'))) {
       fail(`Photo ${p.id}: thumb must be a local path under assets/photos/.`);
     }
+    if (p.frame != null || p.atlas != null) {
+      const a = atlases[p.atlas];
+      if (!a) fail(`Photo ${p.id} points at a missing atlas.`);
+      const frame = p.frame;
+      if (!Array.isArray(frame) || frame.length !== 4 || frame.some(n => !Number.isInteger(n) || n < 0)) {
+        fail(`Photo ${p.id} needs an atlas frame of four whole pixels.`);
+      }
+      const [x, y, w, h] = frame;
+      if (w < 1 || h < 1 || x + w > a.w || y + h > a.h) fail(`Photo ${p.id} frame sits outside its atlas.`);
+    } else if (p.thumb == null) fail(`Photo ${p.id} needs an atlas frame or a thumb.`);
     if (!(p.aspect > 0)) fail(`Photo ${p.id} needs its aspect ratio (run home/tools/build-catalog.swift).`);
     ids.add(p.id);
     return { ...p, description: p.description ?? '', photographer: p.photographer ?? '', avg: Array.isArray(p.avg) ? p.avg : [0.5, 0.5, 0.5] };
@@ -47,7 +64,7 @@ export function validateCatalog(catalog, data) {
   if (!Array.isArray(journal) || journal.some(entry => !entry || typeof entry !== 'object')) {
     fail('journal must be an array of date/text entries.');
   }
-  return { photos, authored, journal };
+  return { photos, authored, journal, atlases };
 }
 
 export async function loadCatalog() {

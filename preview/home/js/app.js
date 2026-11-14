@@ -42,7 +42,7 @@ const rng = mulberry(0x2545f491);
 
 let W = innerWidth, H = innerHeight, DPR = Math.min(devicePixelRatio || 1, 2), PW = 1, PH = 1;
 let CW = 18, SPACING = CW / NF, PHOTO_W = 0.8 * SPACING, SLOT = 1.9 * PHOTO_W;
-let stories = [], photos = [];
+let stories = [], photos = [], atlases = [];
 const fib = {
   x0: new Float32Array(NF), seed: new Float32Array(NF), speed: new Float32Array(NF),
   o: new Float32Array(NF), v: new Float32Array(NF), py: new Float32Array(NF).fill(CH * 0.5), phase: new Float64Array(NF),
@@ -376,11 +376,11 @@ function beginRest() {
   if (!photos.length) { body.classList.add('loaded'); return; }
   armMusic();
 }
-// Thumbs stay off the first paint. They start only after the visitor walks into the curtain.
+// Atlases stay off the first paint. They start only after the visitor walks into the curtain.
 function beginPhotos() {
   if (photoStream || !wantPhotos || !arrTex || !photos.length) return;
   photoStream = true;
-  streamTextures(gl, arrTex, photos, progress => $loader.style.setProperty('--p', progress.toFixed(3)))
+  streamTextures(gl, arrTex, photos, atlases, progress => $loader.style.setProperty('--p', progress.toFixed(3)))
     .then(() => body.classList.add('loaded'))
     .catch(err => console.warn(err));
 }
@@ -973,6 +973,7 @@ async function boot() {
   resize();
   const catalog = await loadCatalog();
   photos = catalog.photos;
+  atlases = catalog.atlases;
   arrTex = createPhotoArray(gl, Math.max(photos.length, 1));
   buildFibres();
   // The family's own story hangs on the thread the child is reaching for.
