@@ -591,7 +591,10 @@ function step(dt, now) {
   motion = Math.min(1, 40 / scale);
   select.t = damp(select.t, select.target, select.target ? 3.2 : 4, dt);
   flow = damp(flow, paused ? 0 : 1 - 0.85 * select.t, 2.2, dt);
-  const rate = 55 * Math.pow(0.4, zt) / scale * flow;
+  // The resting rain (zoom under 0.4) keeps the old pace. Across the photograph
+  // grid the same drift runs at twice that pace, eased in so it does not jump.
+  const stream = smooth(0.4, 0.74, zt);
+  const rate = 55 * Math.pow(0.4, zt) * (1 + stream) / scale * flow;
 
   // What is under the hand.
   let line = -1;
