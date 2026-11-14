@@ -33,11 +33,8 @@ const YB = 1.05;          // height where fibres start to bend onto the floor
 const F = 1.6;            // focal length (NDC)
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const QS = new URLSearchParams(location.search);
-const SHOTS = { hands: 0.45, slit: 1.8, walk: 2.55, spark: 3.3, rise: 3.9, land: 4.68, open: 5.08 };
-const gate = {
-  active: false, p: 0, frozen: false, open: 0, scale: 1, lift: 0, childA: 1, direct: 0,
-  sprite: 0, fly: 0, sparks: 0, flyTo: null, flyFrom: null, landed: false, navigated: false, seeked: false,
-};
+const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
+const gate = { active: false, p: 0, frozen: false, open: 0, navigated: false, seeked: false };
 
 const rng = mulberry(0x2545f491);
 
@@ -523,7 +520,6 @@ function resize() {
   PW = Math.round(W * DPR); PH = Math.round(H * DPR);
   canvas.width = PW; canvas.height = PH;
   if (RT) { freeTarget(RT.scene); RT.refl.forEach(freeTarget); RT.bloom.forEach(freeTarget); }
-  sizeSpark();
   RT = {
     scene: target(PW, PH),
     refl: [target(PW / 2, PH / 2), target(PW / 2, PH / 2)],
@@ -751,20 +747,16 @@ function drawWorld(rt, mirror) {
   gl.bindVertexArray(vaos.fibre);
   gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (SEG + 1) * 2, NF);
 
-  // The child, in front of the curtain (and upside down in the water).
-  // While the curtain opens he is also drawn on top of the composite, so the hem
-  // does not erase him. At rest gate.scale is 1 and gate.lift is 0: same quad.
-  const sc = gate.scale;
-  const fh = CHILD.frameH * sc, fw = CHILD.frameW * sc;
-  const sceneA = gate.active ? show * gate.childA * (1 - gate.direct) : show;
-  if (childOn && sceneA > 0.003 && !(mirror && gate.active)) {
+  // The child stands in the curtain. As it opens he is carried away with the rain;
+  // he is not drawn again on top of the bright scene.
+  if (childOn && show > 0.003) {
     const c = P.child, cu = c.u; gl.useProgram(c.p);
     gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
     gl.uniform1f(cu.uMirror, mirror ? 1 : 0); gl.uniform1f(cu.uZ, CHILD.z);
-    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * fh + gate.lift, fw, fh);
+    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
     gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
     gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
-    gl.uniform1f(cu.uAlpha, sceneA); gl.uniform1f(cu.uH, CHILD.h * sc); gl.uniform1f(cu.uDirect, 0);
+    gl.uniform1f(cu.uAlpha, show); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 0);
     gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
@@ -831,22 +823,6 @@ function render() {
     gl.uniform2f(u.uRes, PW, PH);
     gl.uniform1f(u.uOpen, gate.open);
   });
-
-  const directA = gate.active ? show * gate.childA * gate.direct : 0;
-  if (childOn && directA > 0.003) {
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    const sc = gate.scale, fh = CHILD.frameH * sc, fw = CHILD.frameW * sc;
-    const c = P.child, cu = c.u; gl.useProgram(c.p);
-    gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
-    gl.uniform1f(cu.uMirror, 0); gl.uniform1f(cu.uZ, CHILD.z);
-    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * fh + gate.lift, fw, fh);
-    gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
-    gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
-    gl.uniform1f(cu.uAlpha, directA); gl.uniform1f(cu.uH, CHILD.h * sc); gl.uniform1f(cu.uDirect, 1);
-    gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.disable(gl.BLEND);
-  }
 }
 
 function frame(now) {
@@ -866,37 +842,11 @@ window.__tick = (n = 1) => {
 };
 
 // ────────────────────────────────────────────────────────────── castle gate
-// The resting page never enters this. CASTLE seeks the hands-up moment in the film,
-// draws the rain apart, and walks Duang into the castle that is already playing behind it.
+// CASTLE holds the hands-up moment, then draws the rain apart. Duang fades with the cloth.
+// The castle, including its flying sprite, is already playing behind it.
 
-const sparkBits = Array.from({ length: 56 }, (_, i) => ({
-  a: 99, x: 0, y: 0, vx: 0, vy: 0, s: 2, spin: 0, gold: i % 3 !== 0,
-}));
-
-function curtainPose(p) {
-  const open = smooth(0, 1, clamp((p - 0.55) / 4.15, 0, 1));
-  const walk = smooth(0, 1, clamp((p - 1.05) / 2.55, 0, 1));
-  const spriteIn = smooth(2.9, 3.2, p);
-  return {
-    open,
-    scale: 1 - walk * 0.84,
-    lift: Math.pow(walk, 1.35) * 2.5,
-    childA: 1 - smooth(2.7, 3.05, p),
-    direct: smooth(0.02, 0.14, open),
-    fly: smooth(0, 1, clamp((p - 3.15) / 1.5, 0, 1)),
-    sparks: smooth(1.7, 2.45, p) * (1 - smooth(4.35, 4.9, p)),
-    spriteA: spriteIn * (1 - smooth(4.72, 5.02, p)),
-  };
-}
-function applyPose(pose) {
-  gate.open = pose.open;
-  gate.scale = pose.scale;
-  gate.lift = pose.lift;
-  gate.childA = pose.childA;
-  gate.direct = gate.active ? pose.direct : 0;
-  gate.sprite = pose.spriteA;
-  gate.fly = pose.fly;
-  gate.sparks = pose.sparks;
+function curtainOpen(p) {
+  return smooth(0, 1, clamp((p - 0.55) / 4.15, 0, 1));
 }
 function armCastleFrame() {
   const frame = document.getElementById('castle-frame');
@@ -939,107 +889,21 @@ function beginCastle() {
   armCastleFrame();
   holdHands();
   $announce.textContent = '幕布拉开，走进城堡。 The curtain is opening onto the castle.';
-  sizeSpark();
-}
-function childScreenBox() {
-  const sc = gate.scale;
-  const feetX = childX(childPose.feet);
-  const head = project(feetX, gate.lift + Math.max(0.2, childY(0.04)) * sc, CHILD.z);
-  const feet = project(feetX, gate.lift, CHILD.z);
-  const h = Math.max(18, feet.y - head.y);
-  const w = h * 0.46;
-  return { x: feet.x - w / 2, y: head.y, w, h };
-}
-function lerpBox(a, b, t) {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, w: a.w + (b.w - a.w) * t, h: a.h + (b.h - a.h) * t };
-}
-function placeFlyer(box, alpha) {
-  const el = document.getElementById('flyer');
-  if (!el) return;
-  const w = Math.max(8, box.w), h = Math.max(8, box.h);
-  el.style.width = `${w}px`;
-  el.style.height = `${h}px`;
-  el.style.transform = `translate3d(${box.x.toFixed(1)}px,${box.y.toFixed(1)}px,0)`;
-  el.style.opacity = String(alpha);
-  el.style.backgroundSize = `${(1024 / 208) * w}px ${(256 / 252) * h}px`;
-  el.style.backgroundPosition = `${(-582 / 208) * w}px ${(-2 / 252) * h}px`;
-}
-function sizeSpark() {
-  const c = document.getElementById('spark');
-  if (!c) return;
-  const w = Math.max(1, Math.round(W * DPR)), h = Math.max(1, Math.round(H * DPR));
-  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
-}
-function drawSparks(dt) {
-  const c = document.getElementById('spark');
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-  if (!gate.active || gate.sparks < 0.02) return;
-  const box = gate.flyFrom ? lerpBox(gate.flyFrom, gate.flyTo || gate.flyFrom, gate.fly) : childScreenBox();
-  const cx = box.x + box.w / 2, cy = box.y + box.h * 0.42;
-  for (const s of sparkBits) {
-    s.a += dt;
-    if (s.a > 1.1 && Math.random() < dt * 9 * gate.sparks) {
-      const ang = Math.random() * Math.PI * 2;
-      const rad = (0.15 + Math.random()) * Math.max(box.w, box.h) * 0.9;
-      s.x = cx + Math.cos(ang) * rad;
-      s.y = cy + Math.sin(ang) * rad * 0.75;
-      s.vx = Math.cos(ang) * (6 + Math.random() * 16);
-      s.vy = -16 - Math.random() * 26;
-      s.s = 2.2 + Math.random() * 4.4;
-      s.spin = Math.random() * 6;
-      s.a = 0;
-      s.gold = Math.random() > 0.28;
-    }
-    if (s.a > 1.15) continue;
-    s.x += s.vx * dt; s.y += s.vy * dt; s.spin += dt * 2.2;
-    const k = Math.sin(Math.min(1, s.a) * Math.PI) * gate.sparks;
-    ctx.save();
-    ctx.translate(s.x, s.y);
-    ctx.rotate(s.spin);
-    ctx.globalAlpha = Math.max(0, k);
-    ctx.fillStyle = s.gold ? '#f3d7a2' : '#fff8ea';
-    const r = s.s;
-    ctx.beginPath();
-    ctx.moveTo(0, -r * 1.8); ctx.lineTo(r * 0.28, 0); ctx.lineTo(0, r * 1.8); ctx.lineTo(-r * 0.28, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
 }
 function gateTick(dt) {
   if (gate.seeked && !$video.paused) $video.pause();
   if (!gate.frozen) gate.p += dt;
-  const pose = curtainPose(gate.p);
-  applyPose(pose);
+  gate.open = curtainOpen(gate.p);
   cam.lsT = LS_MIN();
   tween = null;
   anchor = null;
-  if (gate.sprite > 0.05 && !gate.flyFrom) gate.flyFrom = childScreenBox();
-  const box = gate.flyFrom ? lerpBox(gate.flyFrom, gate.flyTo || gate.flyFrom, gate.fly) : childScreenBox();
-  placeFlyer(box, gate.sprite);
-  drawSparks(dt);
-  if (gate.seeked && (pose.open < 0.02 || gate.flyTo)) window.__gateReady = gate.p;
-  if (!gate.landed && gate.sprite < 0.04 && gate.fly > 0.96 && gate.p > 4.7) {
-    gate.landed = true;
-    document.getElementById('castle-frame')?.contentWindow?.postMessage({ type: 'hd-land' }, '*');
-  }
-  if (!gate.frozen && !gate.navigated && gate.p > 5.35) {
+  if (!gate.frozen && !gate.navigated && gate.p > 5.05) {
     gate.navigated = true;
     const u = new URL('../castle/', location.href);
     u.searchParams.set('arrived', '1');
     location.href = u.href;
   }
 }
-addEventListener('message', e => {
-  const frame = document.getElementById('castle-frame');
-  if (!frame || e.source !== frame.contentWindow || !e.data) return;
-  if (e.data.type === 'hd-fly' && e.data.w > 2 && e.data.h > 2) {
-    gate.flyTo = { x: e.data.x, y: e.data.y, w: e.data.w, h: e.data.h };
-  }
-});
 
 // ────────────────────────────────────────────────────────────── boot
 
@@ -1114,7 +978,7 @@ async function boot() {
   if (QS.has('play') || shot != null) {
     armCastleFrame();
     beginCastle();
-    if (shot != null) { gate.frozen = true; gate.p = shot; applyPose(curtainPose(shot)); }
+    if (shot != null) { gate.frozen = true; gate.p = shot; gate.open = curtainOpen(shot); }
   } else {
     setTimeout(armCastleFrame, 1200);
   }

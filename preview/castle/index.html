@@ -62,24 +62,20 @@
 </div>
 
 <main>
-  <section class="stage" id="stage" tabindex="0" aria-label="端端的方块城堡：四座角楼分别是英语、语文、数学和作品，主堡顶的旗子是家庭相册，正门是关于我们。门口站着机甲端端，探险端端绕着城堡跑，战斗端端在天上飞。左右拖动可以旋转，也可以用下方的文字目录。">
+  <section class="stage" id="stage" tabindex="0" aria-label="端端的方块城堡。四座角楼的小旗分别通往英语、语文、数学和作品，主堡顶是天圆地方。左右拖动可以旋转，也可以用下方的文字目录。">
     <img class="fallback" data-src="assets/castle-still.jpg" alt="端端的方块城堡" width="800" height="800">
     <canvas id="castle" aria-hidden="true"></canvas>
     <button class="hero-hit" id="duang-hit" type="button" aria-label="和天上飞的战斗端端打个招呼"></button>
     <p id="bubble" class="bubble" role="status" aria-live="polite"><span></span></p>
 
-    <a class="spot s-eng" data-id="eng" href="eng/" style="--c:#1B5A6E;--b:#DCEEF4" aria-label="英语：左前角楼">
-      <span class="hit"></span><span class="lab"><i>ABC</i>英语</span></a>
-    <a class="spot s-cn" data-id="cn" href="cn/" style="--c:#7E3A2E;--b:#F3E4DF" aria-label="语文：右前角楼">
-      <span class="hit"></span><span class="lab"><i>语</i>语文</span></a>
-    <a class="spot s-math" data-id="math" href="math/" style="--c:#2F5A3A;--b:#DDEBD8" aria-label="数学：左后角楼">
-      <span class="hit"></span><span class="lab"><i>1+2</i>数学</span></a>
-    <a class="spot s-works" data-id="works" href="works/" style="--c:#6B4A1E;--b:#EFE3CF" aria-label="Duang 的作品：右后角楼">
-      <span class="hit"></span><span class="lab"><i>画</i>作品</span></a>
-    <a class="spot s-about" data-id="about" href="about/" style="--c:#3D3A35;--b:#ECE7DD" aria-label="关于我们：城堡正门">
-      <span class="hit"></span><span class="lab"><i>家</i>关于我们</span></a>
-    <a class="spot s-album" data-id="album" href="album/" rel="nofollow" style="--c:#8A5A12;--b:#FBF0D6" aria-label="家庭相册：主堡顶上的旗子，需要密码">
-      <span class="hit"></span><span class="lab"><i class="lock"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7h8v7H4zM6 7V5a2 2 0 0 1 4 0v2" fill="none" stroke="currentColor" stroke-width="2"/></svg></i>家庭相册</span></a>
+    <a class="spot s-eng" data-id="eng" href="eng/" style="--c:#1B5A6E" aria-label="英语：左前角楼">
+      <span class="hit"></span><span class="lab"><svg class="pennant" viewBox="0 0 22 28" aria-hidden="true" shape-rendering="crispEdges"><rect x="1" y="2" width="2" height="25" fill="#7D4F2E"/><rect x="0" y="0" width="4" height="3" fill="#E0AE45"/><g class="cloth"><polygon points="4,3 18,3 15,8 18,13 4,13" fill="#3F7D87"/><g fill="#F4EAD2"><rect x="6" y="5" width="1" height="1"/><rect x="5" y="6" width="1" height="3"/><rect x="7" y="6" width="1" height="3"/><rect x="6" y="7" width="1" height="1"/><rect x="9" y="5" width="2" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="11" y="6" width="1" height="1"/><rect x="9" y="7" width="2" height="1"/><rect x="9" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/><rect x="9" y="9" width="2" height="1"/><rect x="13" y="5" width="2" height="1"/><rect x="13" y="6" width="1" height="2"/><rect x="13" y="9" width="2" height="1"/></g></g></svg><span class="name">英语</span></span></a>
+    <a class="spot s-cn" data-id="cn" href="cn/" style="--c:#7E3A2E" aria-label="语文：右前角楼">
+      <span class="hit"></span><span class="lab"><svg class="pennant" viewBox="0 0 22 28" aria-hidden="true" shape-rendering="crispEdges"><rect x="1" y="2" width="2" height="25" fill="#7D4F2E"/><rect x="0" y="0" width="4" height="3" fill="#E0AE45"/><g class="cloth"><polygon points="4,3 18,3 15,8 18,13 4,13" fill="#B9583C"/><g fill="#F7EDD8"><rect x="6" y="5" width="2" height="1"/><rect x="7" y="6" width="2" height="1"/><rect x="8" y="7" width="3" height="1"/><rect x="9" y="8" width="3" height="1"/><rect x="11" y="9" width="2" height="1"/><rect x="6" y="8" width="1" height="1"/></g></g></svg><span class="name">语文</span></span></a>
+    <a class="spot s-math" data-id="math" href="math/" style="--c:#2F5A3A" aria-label="数学：左后角楼">
+      <span class="hit"></span><span class="lab"><svg class="pennant" viewBox="0 0 22 28" aria-hidden="true" shape-rendering="crispEdges"><rect x="1" y="2" width="2" height="25" fill="#7D4F2E"/><rect x="0" y="0" width="4" height="3" fill="#E0AE45"/><g class="cloth"><polygon points="4,3 18,3 15,8 18,13 4,13" fill="#3F6B48"/><g fill="#F4EAD2"><rect x="6" y="5" width="1" height="5"/><rect x="8" y="6" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="12" y="5" width="3" height="1"/><rect x="14" y="6" width="1" height="1"/><rect x="13" y="7" width="1" height="1"/><rect x="12" y="8" width="1" height="1"/><rect x="12" y="9" width="3" height="1"/></g></g></svg><span class="name">数学</span></span></a>
+    <a class="spot s-works" data-id="works" href="works/" style="--c:#6B4A1E" aria-label="Duang 的作品：右后角楼">
+      <span class="hit"></span><span class="lab"><svg class="pennant" viewBox="0 0 22 28" aria-hidden="true" shape-rendering="crispEdges"><rect x="1" y="2" width="2" height="25" fill="#7D4F2E"/><rect x="0" y="0" width="4" height="3" fill="#E0AE45"/><g class="cloth"><polygon points="4,3 18,3 15,8 18,13 4,13" fill="#A67C52"/><g fill="#F7EDD8"><rect x="6" y="9" width="1" height="1"/><rect x="7" y="8" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="9" y="6" width="2" height="1"/><rect x="9" y="5" width="2" height="1"/></g><rect x="12" y="8" width="2" height="2" fill="#3F7D87"/><rect x="14" y="7" width="2" height="2" fill="#B9583C"/><rect x="13" y="10" width="2" height="2" fill="#E0AE45"/></g></svg><span class="name">作品</span></span></a>
     <div class="bar">
       <p class="hint" aria-hidden="true"><span class="hand">↔</span> 拖一拖，城堡会转；点角楼进房间</p>
       <button class="turn" id="turn" type="button" aria-label="把城堡转到背面">转到背面</button>
@@ -93,8 +89,6 @@
       <li><a href="cn/" style="--b:#F3E4DF;--c:#7E3A2E"><i>语</i><span><b>语文</b><small>右前角楼 · 拼音点读卡</small></span></a></li>
       <li><a href="math/" style="--b:#DDEBD8;--c:#2F5A3A"><i>1+2</i><span><b>数学</b><small>左后角楼 · 准备中</small></span></a></li>
       <li><a href="works/" style="--b:#EFE3CF;--c:#6B4A1E"><i>画</i><span><b>Duang 的作品</b><small>右后角楼 · 画和手工</small></span></a></li>
-      <li><a href="album/" rel="nofollow" style="--b:#FBF0D6;--c:#8A5A12"><i>锁</i><span><b>家庭相册</b><small>主堡顶的旗子 · 需密码</small></span></a></li>
-      <li><a href="about/" style="--b:#ECE7DD;--c:#3D3A35"><i>家</i><span><b>关于我们</b><small>城堡正门</small></span></a></li>
     </ul>
   </section>
 </main>

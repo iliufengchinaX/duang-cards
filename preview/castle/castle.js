@@ -540,9 +540,7 @@
   /* ---------- 热区：四座角楼 + 主堡旗 + 正门（标签跟着建筑走，被主堡挡住就藏起来） ---------- */
   var SPOTS = [
     { id: 'eng', g: 3, t: TOWERS[0] }, { id: 'cn', g: 4, t: TOWERS[1] },
-    { id: 'math', g: 5, t: TOWERS[2] }, { id: 'works', g: 6, t: TOWERS[3] },
-    { id: 'about', g: 7, door: true, n: [0, 0, 1], box: [-1.3, 2.3, -0.2, 5.2, 11.4, 12.2], a: [0.5, 2.2, 12.1] },
-    { id: 'album', g: 8, flag: true }
+    { id: 'math', g: 5, t: TOWERS[2] }, { id: 'works', g: 6, t: TOWERS[3] }
   ];
   SPOTS.forEach(function (s) {
     if (s.t) { var x0 = s.t.x0, z0 = s.t.z0; s.box = [x0 - 0.6, x0 + 5.6, 0, TOWER_TOP, z0 - 0.6, z0 + 5.6]; s.a = [x0 + 2.5, TOWER_TOP - 0.4, z0 + 2.5];
@@ -560,7 +558,7 @@
     return true;
   }
   var LINES = {
-    tap: ['Hi! 点角楼试试', 'Hello! 我是 Duang', 'Duang~!', '四座角楼，四个房间', "Let's go!", '旗子后面是家庭相册', '盾牌防御！Shield up!'],
+    tap: ['Hi! 点角楼试试', 'Hello! 我是 Duang', 'Duang~!', '四座角楼，四个房间', "Let's go!", '盾牌防御！Shield up!'],
     hint: ['点这座试试！', 'Try this one!', '这里面有好玩的', 'Tap here!'],
     go: ['出发！', 'Go go go!', '我陪你去！']
   };
@@ -587,12 +585,8 @@
   try { fast = sessionStorage.getItem('hd-built') === '1'; sessionStorage.setItem('hd-built', '1'); } catch (e) { }
   var INTRO = REDUCED ? 0 : (fast ? 1.3 : 3.0);
   var VEIL = Q.has('veil'), ARRIVED = Q.has('arrived');
-  var showFly = !VEIL;
   if (VEIL || ARRIVED) { INTRO = 0; state.yaw = FB_YAW; state.builtCam = true; state.built = true; }
   if (REDUCED || !gl) state.yaw = FB_YAW;
-  addEventListener('message', function (e) {
-    if (e.data && e.data.type === 'hd-land') showFly = true;
-  });
 
   function camera(w, h) {
     var asp = w / h, fov = 0.5, tf = Math.tan(fov / 2);
@@ -928,7 +922,7 @@
     var target = [0.5 + RIGHT[0] * lat + FWD[0] * depth, y + CB.offY, 0.5 + RIGHT[2] * lat + FWD[2] * depth];
     if (appear < 1) target = [target[0] + RIGHT[0] * CB.side * (1 - appear) * 12, target[1] + (1 - appear) * 10, target[2] + RIGHT[2] * CB.side * (1 - appear) * 12];
     // 保底：投影到屏幕后，和主堡、旗子有重叠就往外 / 往下挪
-    var FS_ = SPOTS[5].rect, KR = rectOf(cam, [KEEP_BOX[0] - 0.5, KEEP_BOX[1] + 0.5, 0, KEEP_TOP, KEEP_BOX[4] - 0.5, KEEP_BOX[5] + 0.5], w, h);
+    var fb = FLAG.box, FS_ = rectOf(cam, [fb[0] - 0.4, fb[1] + 0.2, fb[2] - 0.4, fb[3], fb[4] - 0.3, fb[5] + 0.3], w, h), KR = rectOf(cam, [KEEP_BOX[0] - 0.5, KEEP_BOX[1] + 0.5, 0, KEEP_TOP, KEEP_BOX[4] - 0.5, KEEP_BOX[5] + 0.5], w, h);
     var tmp = { key: 'combat', sx: 1, sy: 1, drawPos: target };
     for (var it = 0; it < 12 && !CB.sw; it++) {
       tmp.drawPos = target; var q = spriteQuad(tmp, cam, w, h), hit = false;
@@ -962,11 +956,7 @@
     if (onLab !== heroHit._low) { heroHit._low = onLab; heroHit.style.zIndex = onLab ? '5' : ''; }
     heroHit.style.width = ww.toFixed(0) + 'px'; heroHit.style.height = hh.toFixed(0) + 'px';
     heroHit.style.transform = 'translate3d(' + hr[0].toFixed(1) + 'px,' + hr[1].toFixed(1) + 'px,0)';
-    heroHit.classList.toggle('on', appear >= 1 && !!tex && !CB.sw && showFly);
-    if (VEIL && window.parent && window.parent !== window) {
-      var vis = spriteQuad(B, cam, w, h);
-      window.parent.postMessage({ type: 'hd-fly', x: vis[0], y: vis[1], w: vis[2] - vis[0], h: vis[3] - vis[1] }, '*');
-    }
+    heroHit.classList.toggle('on', appear >= 1 && !!tex && !CB.sw);
     var bw2 = (bubble.firstChild.offsetWidth || 120) / 2 + 8;
     var bX = Math.max(bw2, Math.min(w - bw2, bx)), bY = Math.max(58, hr[1] + 4);
     if (CB.sw) {   // 绕到主堡后面时，气泡先挂到要去的那一边，不压主堡和旗子
@@ -1001,7 +991,6 @@
     list.forEach(function (it) { var H = it[1]; if (H.shadow) quad(H, 2, 1, Math.max(0, 1 - H.pos[1] * 0.4) * Math.min(1, H.sx)); });
     list.forEach(function (it) {
       var H = it[1];
-      if (H === heroes.combat && !showFly) return;
       if (H.halo > 0.01) { gl.uniform3f(US.uTint, 0.45, 0.8, 1.0); quad(H, 1, 1.1, 0.55 * H.halo); }
       quad(H, 0, 1, 1);
     });

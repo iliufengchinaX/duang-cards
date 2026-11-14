@@ -69,24 +69,25 @@ a{color:inherit}
 
 .fallback{display:none}
 
-/* 角楼 / 旗 / 正门热区：透明的大按钮盖住整座建筑，标签挂在头顶，位置由 castle.js 每帧算 */
-.spot{position:absolute;left:0;top:0;width:0;height:0;text-decoration:none;opacity:0;transition:opacity .25s;will-change:transform,opacity;z-index:2}
+/* 角楼热区：小旗挂在塔顶，名字只在悬停或键盘焦点时出现 */
+.spot{position:absolute;left:0;top:0;width:0;height:0;text-decoration:none;opacity:0;transition:opacity .25s;will-change:transform,opacity;z-index:2;color:var(--c)}
 .spot.off{pointer-events:none}
-.spot .hit{position:absolute;left:0;top:0;width:60px;height:60px;border-radius:2px}
-.spot .lab{position:absolute;left:0;top:0;display:flex;align-items:center;gap:7px;white-space:nowrap;
-  height:36px;padding:0 12px 0 5px;background:var(--card);color:var(--c);font-weight:700;font-size:15px;letter-spacing:.02em;
-  box-shadow:0 0 0 var(--px) var(--c),var(--px) calc(var(--px) * 2) 0 var(--px) rgba(26,25,23,.18);
-  transition:transform .14s steps(3),background .14s}
-.spot .lab i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 5px;
-  background:var(--b);color:var(--c);font-size:12px;font-weight:800;letter-spacing:0;font-family:ui-monospace,Menlo,Consolas,monospace}
-.spot .lab i.lock svg{width:13px;height:13px}
-.spot:hover .lab,.spot:focus-visible .lab{transform:translateY(-3px)}
+.spot .hit{position:absolute;left:0;top:0;width:60px;height:60px}
+.spot .lab{position:absolute;left:0;top:0;display:block;width:52px;height:66px}
+.pennant{display:block;width:52px;height:66px;overflow:visible;filter:drop-shadow(0 3px 0 rgba(26,25,23,.18))}
+.pennant .cloth{transform-box:fill-box;transform-origin:0% 50%;animation:pennant-wave 2.6s ease-in-out infinite}
+.s-cn .pennant .cloth{animation-delay:-.6s}
+.s-math .pennant .cloth{animation-delay:-1.3s}
+.s-works .pennant .cloth{animation-delay:-1.9s}
+@keyframes pennant-wave{0%,100%{transform:skewY(0deg)}50%{transform:skewY(8deg)}}
+.spot .name{position:absolute;left:26px;bottom:100%;transform:translate(-50%,-6px);padding:4px 8px;background:#fffaf2;color:#1A1917;
+  font-size:13px;font-weight:700;white-space:nowrap;border-radius:4px;box-shadow:0 6px 16px rgba(40,30,20,.22);opacity:0;pointer-events:none}
+.spot:hover .name,.spot:focus-visible .name{opacity:1}
+.spot:hover .pennant,.spot:focus-visible .pennant{transform:translateY(-3px)}
 .spot:focus-visible{outline:none}
-.spot:focus-visible .hit{box-shadow:inset 0 0 0 3px var(--c)}
-.spot.press .lab{background:var(--c);color:#fff;transform:translateY(2px)}
-.spot.press .lab i{background:rgba(255,255,255,.22);color:#fff}
-.spot.press .hit{animation:ping .6s steps(6) forwards}
-@keyframes ping{0%{box-shadow:inset 0 0 0 0 rgba(255,214,120,.0)}30%{box-shadow:inset 0 0 0 4px rgba(255,214,120,.8)}100%{box-shadow:inset 0 0 0 4px rgba(255,214,120,0)}}
+.spot:focus-visible .pennant{outline:2px solid var(--c);outline-offset:3px}
+.spot.press .pennant{transform:translateY(2px)}
+@media(prefers-reduced-motion:reduce){.pennant .cloth{animation:none}.spot .pennant{transition:none}}
 
 .bar{position:absolute;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:44px;pointer-events:none}
 .bar .hint,.bar .turn{pointer-events:auto}

@@ -150,10 +150,7 @@ body.ready .rise{animation:rise 1.5s var(--ease) both;animation-delay:calc(1.1s 
 /* The castle sits behind the rain. It stays invisible until the curtain is asked to open. */
 #castle-frame{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1;opacity:0;pointer-events:none;background:#d5eefc}
 body.parting #castle-frame{opacity:1}
-#flyer{position:fixed;left:0;top:0;z-index:4;pointer-events:none;opacity:0;image-rendering:pixelated;
-  background:url("../castle/assets/duang-sprites.webp") no-repeat;filter:drop-shadow(0 10px 14px rgb(40 70 110 / .28))}
-#spark{position:fixed;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}
-body.parting .foot,body.parting #child{opacity:0;transition:opacity .45s ease}
+body.parting .foot{opacity:0;transition:opacity .45s ease}
 body.parting #cursor,body.parting #ring{opacity:0}
 body.no-album .menu-foot{display:none}
 
