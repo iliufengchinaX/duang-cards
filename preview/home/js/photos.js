@@ -16,10 +16,19 @@ export function createPhotoArray(gl, count) {
 }
 
 async function bitmap(src) {
-  const res = await fetch(src);
-  if (!res.ok) throw new Error(`Could not load photo: ${src}`);
   // Stretched to the square layer; the stream restores the aspect.
-  return createImageBitmap(await res.blob(), { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'high' });
+  // fetch follows a cross-origin redirect (raw.githack.com → raw.githubusercontent.com)
+  // and createImageBitmap reads the bytes, so a wrong Content-Type does not blank the photo.
+  try {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`Could not load photo: ${src}`);
+    return await createImageBitmap(await res.blob(), { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'low' });
+  } catch (err) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = src; });
+    return await createImageBitmap(img, { resizeWidth: LAYER, resizeHeight: LAYER, resizeQuality: 'low' });
+  }
 }
 
 export async function streamTextures(gl, tex, photos, onProgress) {

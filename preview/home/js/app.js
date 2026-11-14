@@ -275,6 +275,7 @@ function onStoryHide() {
 function markInput() { lastInput = performance.now(); }
 function showMeter() { zoomUntil = performance.now() + 1100; }
 function zoomBy(delta, sx, sy) {
+  wantPhotos = true;
   const p = unproject(sx, sy);
   anchor = { wx: p.x, wy: p.y, sx, sy };
   cam.lsT = clamp(cam.lsT + delta, LS_MIN(), LS_MAX());
@@ -295,6 +296,7 @@ function glideTo(ls, sx, sy, ms) {
   showMeter();
 }
 function enter() {
+  wantPhotos = true;
   if (!view || view.isOpen) return;
   markInput();
   const hand = project(glowX(), childY(childPose.top));
@@ -367,13 +369,20 @@ function armMusic() {
   $music.src = './assets/icarus.mp3';
   if (musicOn) $music.play().catch(() => {});
 }
+let photoStream = false, wantPhotos = false;
 function beginRest() {
-  if (!restReady || !arrTex || photosStarted) return;
+  if (!restReady || photosStarted) return;
   photosStarted = true;
   if (!photos.length) { body.classList.add('loaded'); return; }
   armMusic();
+}
+// Thumbs stay off the first paint. They start only after the visitor walks into the curtain.
+function beginPhotos() {
+  if (photoStream || !wantPhotos || !arrTex || !photos.length) return;
+  photoStream = true;
   streamTextures(gl, arrTex, photos, progress => $loader.style.setProperty('--p', progress.toFixed(3)))
-    .then(() => body.classList.add('loaded'));
+    .then(() => body.classList.add('loaded'))
+    .catch(err => console.warn(err));
 }
 function startFilm() {
   $video.muted = true;
@@ -572,6 +581,8 @@ function step(dt, now) {
     cam.vx *= Math.exp(-dt * 3.4); cam.vy *= Math.exp(-dt * 3.4);
   }
   const zt = zoomT(), home = 1 - smooth(0, 0.14, zt);
+  if (zt > 0.12) wantPhotos = true;
+  beginPhotos();
   cam.x = damp(cam.x, 0, 7 * home, dt); cam.y = damp(cam.y, HOME_Y, 7 * home, dt);
   cam.x = clamp(cam.x, -CW / 2 - 0.6, CW / 2 + 0.6); cam.y = clamp(cam.y, -2.5, CH + 1.2);
 
