@@ -143,22 +143,7 @@ a{color:inherit}
 
 /* ───────────── fairy-tale world ───────────── */
 .world{position:fixed;inset:0;z-index:0;overflow:hidden;background:#c5e6f8}
-.world-sky,.rainbow{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;pointer-events:none;user-select:none}
-.rainbow{z-index:1;opacity:0;
-  -webkit-mask-image:linear-gradient(90deg,#000 46%,transparent 58%);
-  mask-image:linear-gradient(90deg,#000 46%,transparent 58%);
-  -webkit-mask-size:250% 100%;mask-size:250% 100%;
-  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  -webkit-mask-position:130% 0;mask-position:130% 0}
-html:not(.veil):not(.norainbow):not(.calm) .rainbow{animation:bow 3.8s cubic-bezier(.4,.05,.2,1) .65s forwards}
-html.calm:not(.veil):not(.norainbow) .rainbow{animation:bow-fade .45s ease .25s forwards;-webkit-mask-image:none;mask-image:none}
-html.rainbow-full .rainbow{animation:none;opacity:.9;-webkit-mask-image:none;mask-image:none}
-@keyframes bow{
-  0%{opacity:0;-webkit-mask-position:130% 0;mask-position:130% 0}
-  14%{opacity:.92}
-  100%{opacity:.9;-webkit-mask-position:-20% 0;mask-position:-20% 0}
-}
-@keyframes bow-fade{from{opacity:0}to{opacity:.9}}
+.world-sky{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;pointer-events:none;user-select:none}
 
 /* ───────────── glass nav, the same pieces as the rain curtain ───────────── */
 .top{position:fixed;z-index:30;left:0;right:0;top:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
@@ -215,9 +200,8 @@ body.menu-open #menu{opacity:1;visibility:visible;transition:opacity .7s ease}
 body::after{content:"";position:fixed;inset:0;z-index:80;background:#0b0805;opacity:0;pointer-events:none;transition:opacity .48s ease}
 body.leaving::after{opacity:1}
 
-html.veil .top,html.veil .rooms,html.veil .foot,html.veil .bar,html.veil .rainbow,html.veil #menu,html.veil .spot{display:none!important}
+html.veil .top,html.veil .rooms,html.veil .foot,html.veil .bar,html.veil #menu,html.veil .spot{display:none!important}
 html.veil .stage{height:100vh;height:100dvh;min-height:0}
-html.paused-scene .rainbow{animation-play-state:paused}
 @media(max-width:900px){
   .nav{display:none}
   .top{grid-template-columns:1fr auto}

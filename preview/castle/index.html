@@ -14,8 +14,6 @@
 (function () {
   var q = new URLSearchParams(location.search), h = document.documentElement;
   if (q.has('veil')) h.classList.add('veil');
-  if (q.has('norainbow')) h.classList.add('norainbow');
-  if (q.has('rainbow')) h.classList.add('rainbow-full');
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('calm');
 })();
 </script>
@@ -23,7 +21,6 @@
 <body>
 <div class="world" aria-hidden="true">
   <img class="world-sky" src="assets/world.svg" alt="">
-  <img class="rainbow" src="assets/rainbow.svg" alt="">
 </div>
 <header class="top">
   <a id="wordmark" class="wordmark" href="../home/" data-home>

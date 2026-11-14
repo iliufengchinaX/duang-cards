@@ -308,6 +308,7 @@ function goHome() {
 }
 let musicOn = true, filmStarted = false, musicArmed = false, restReady = false, photosStarted = false;
 const poster = new Image();
+poster.crossOrigin = 'anonymous';
 poster.decoding = 'async';
 poster.onload = () => { placeStill(); startFilmFile(); };
 poster.onerror = () => startFilmFile();
@@ -318,7 +319,18 @@ setTimeout(() => { restReady = true; beginRest(); }, 8000);
 function startFilmFile() {
   if (filmStarted) return;
   filmStarted = true;
+  $video.crossOrigin = 'anonymous';
   $video.preload = 'auto';
+  $video.addEventListener('error', () => {
+    // A preview host may redirect the mp4 and label it application/octet-stream.
+    // A same-origin blob with an explicit video type still plays, and the poster stays if it cannot.
+    if ($video.dataset.blob) return;
+    $video.dataset.blob = '1';
+    fetch('./assets/duang.mp4').then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(b => {
+      $video.src = URL.createObjectURL(new Blob([b], { type: 'video/mp4' }));
+      if (!REDUCED && !gate.active) $video.play().catch(() => {});
+    }).catch(() => {});
+  });
   $video.src = './assets/duang.mp4?v=color';
   const onFrame = () => { childDirty = true; $video.requestVideoFrameCallback?.(onFrame); };
   if ($video.requestVideoFrameCallback) $video.requestVideoFrameCallback(onFrame);
@@ -337,8 +349,13 @@ function placeStill() {
   uploadChild(poster);
 }
 function uploadChild(source) {
-  gl.bindTexture(gl.TEXTURE_2D, T.child);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+  try {
+    gl.bindTexture(gl.TEXTURE_2D, T.child);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+  } catch (e) {
+    console.warn(e);
+    return;
+  }
   childW = source.videoWidth || source.naturalWidth || 1280;
   childH = source.videoHeight || source.naturalHeight || 720;
   if (!childOn) { childOn = true; stillAt = intro; }

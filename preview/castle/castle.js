@@ -727,18 +727,31 @@
   var tex = null;
   (function loadAtlas() {
     var img = new Image(), tried = false;
+    img.crossOrigin = 'anonymous';
+    function usePng() { if (tried) return; tried = true; img.src = 'assets/duang-sprites.png'; }
     img.onload = function () {
-      tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      window.__spritesReady = img.currentSrc || img.src;
+      var t = gl.createTexture();
+      try {
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        tex = t;
+        window.__spritesReady = img.currentSrc || img.src;
+      } catch (e) {
+        console.warn(e);
+        gl.deleteTexture(t);
+        tex = null;
+        usePng();
+      } finally {
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      }
     };
-    img.onerror = function () { if (!tried) { tried = true; img.src = 'assets/duang-sprites.png'; } };   // 不支持 WebP 的老浏览器用 PNG
+    img.onerror = usePng;
     img.src = 'assets/duang-sprites.webp';
   })();
   function hero(key, pos) { return { key: key, pos: pos.slice(), drawPos: pos.slice(), flip: false, roll: 0, sx: 1, sy: 1, alpha: 1, shim: 0, halo: 0, bright: 1, shadow: 1 }; }
