@@ -366,7 +366,7 @@ function armMusic() {
   if (musicArmed) return;
   musicArmed = true;
   $music.preload = 'auto';
-  $music.src = './assets/icarus.mp3';
+  $music.src = './assets/icarus.m4a';
   if (musicOn) $music.play().catch(() => {});
 }
 let photoStream = false, wantPhotos = false;
