@@ -1,23 +1,38 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta name="robots" content="noindex,nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>语文 · Hello Duang</title><link rel="icon" href="../assets/logo-line.svg" type="image/svg+xml"><link rel="stylesheet" href="../sub.css">
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="refresh" content="0;url=../../../index.html#chinese">
+<title>语文 · Hello Duang</title>
+<link rel="stylesheet" href="../../../assets/site.css">
 </head>
-<body style="--b:#F3E4DF;--c:#7E3A2E"><div class="wrap">
-<header class="top"><a class="back" href="../">← 回城堡</a><a class="brand" href="../">Hello Duang</a></header>
-<div class="head"><span class="badge">语</span><div><h1>语文</h1><p class="lead">右前角楼里的拼音点读卡</p></div></div>
-<div class="list" id="list"><p class="ph">加载中…</p></div>
-</div><script>
-fetch('../cards.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){
- var e=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
- var L=(d.cards||[]).filter(function(c){return c.subject==='cn'});
- L.sort(function(a,b){return (a.order||999)-(b.order||999)});
- document.getElementById('list').innerHTML=L.length?L.map(function(c){return '<a class="item" href="../'+e(c.href)+'" style="--cover:'+e(c.cover)+';--cover-ink:'+e(c.coverInk)+'"><span class="chip">'+e(c.letters)+'</span><span class="ib"><span class="it">'+e(c.title)+'</span><br><span class="im">'+e(c.preview)+' · '+e(c.date)+'</span></span></a>'}).join(''):'<p class="ph">还没有卡片</p>';
-}).catch(function(){document.getElementById('list').innerHTML='<p class="ph">目录暂时没加载出来，请刷新</p>'});
-</script>
-<footer class="foot wrap">
-  <div class="credit">
-    <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
-    <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
+<body>
+<div class="aurora" aria-hidden="true"><span class="sun"></span><span class="sky"></span><span class="pool"></span></div>
+<header class="topbar">
+  <div class="bar">
+    <a class="brand" href="../../../index.html">Hello Duang</a>
+    <nav class="menu" aria-label="返回">
+      <a href="../">城堡</a>
+      <a href="../../home/">预习首页</a>
+    </nav>
   </div>
-</footer>
-</body></html>
+</header>
+<main class="wrap page">
+  <header class="course">
+    <div>
+      <h1>语文</h1>
+      <p class="lede">右前角楼。拼音课已经收在新的学习页里。</p>
+    </div>
+  </header>
+  <article class="glass" style="margin-top:28px;padding:28px">
+    <p class="lede">正在打开语文。如果没有自动跳转，点下面的按钮。</p>
+    <p style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn" href="../../../index.html#chinese">打开语文</a>
+      <a class="btn" href="../">回城堡</a>
+    </p>
+  </article>
+</main>
+</body>
+</html>
