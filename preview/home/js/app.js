@@ -36,6 +36,7 @@ const QS = new URLSearchParams(location.search);
 const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
 const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
 const HANDS_AT = 3.02;
+const BLEND_S = 0.26;
 const PART_S = 3.05;
 const OPEN_END = 1.05;
 const GLIDE_END = 2.15;
@@ -121,6 +122,7 @@ function poseAt(t) {
   return { feet: a[1] + (b[1] - a[1]) * k, hand: a[2] + (b[2] - a[2]) * k, top: a[3] + (b[3] - a[3]) * k };
 }
 let childPose = poseAt(0);
+let filmPose = childPose;
 function glowX() { return childX(childPose.hand); }
 // The visitor's ripples on the water, and the child's footsteps.
 const touchRipples = Array.from({ length: TOUCHES }, () => ({ x: 0, z: 0, age: 99 }));
@@ -434,6 +436,8 @@ function setMusic(on) {
   paintMusic();
   if (on) playMusic();
   else $music.pause();
+  const frame = document.getElementById('castle-frame');
+  if (frame?.contentWindow) frame.contentWindow.postMessage({ type: 'hd-music-state', on: musicOn }, location.origin);
 }
 function setPaused(v) {
   paused = v;
@@ -490,7 +494,9 @@ document.addEventListener('click', e => {
   const a = e.target.closest('a[data-castle], a[data-leave]');
   if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
   e.preventDefault();
+  if (body.classList.contains('castle-view')) return;
   if (a.hasAttribute('data-castle') && gl && !REDUCED) beginCastle();
+  else if (a.hasAttribute('data-castle')) revealCastle();
   else {
     body.classList.add('leaving');
     setTimeout(() => { location.href = a.href; }, REDUCED ? 0 : 520);
@@ -657,7 +663,10 @@ addEventListener('resize', () => { if (RT) resize(); });
 function step(dt, now) {
   intro += dt; time += dt;
   if (gate.active) gateTick(dt);
-  childPose = poseAt($video.currentTime || 0);
+  filmPose = poseAt($video.currentTime || 0);
+  // While the curtain is opening, his feet stay where they were at the click.
+  // The hands-up frame is a different picture; it is shifted onto those feet.
+  childPose = gate.active && gate.holdPose ? gate.holdPose : filmPose;
   const lsMin = LS_MIN(), lsMax = LS_MAX();
   if (tween) {
     const t = clamp((now - tween.t0) / tween.ms, 0, 1);
@@ -672,7 +681,7 @@ function step(dt, now) {
     const ox = anchor.wx - p.x, oy = anchor.wy - p.y;
     cam.x += ox; cam.y += oy;
     if (anchor.drag) { cam.vx = damp(cam.vx, ox / Math.max(dt, 1e-3), 18, dt); cam.vy = damp(cam.vy, oy / Math.max(dt, 1e-3), 18, dt); }
-    else if (!tween && Math.abs(cam.ls - cam.lsT) < 0.002) anchor = null;
+    else if (!gate.active && !tween && Math.abs(cam.ls - cam.lsT) < 0.002) anchor = null;
   } else {
     cam.x += cam.vx * dt; cam.y += cam.vy * dt;
     cam.vx *= Math.exp(-dt * 3.4); cam.vy *= Math.exp(-dt * 3.4);
@@ -680,8 +689,11 @@ function step(dt, now) {
   const zt = zoomT(), home = 1 - smooth(0, 0.14, zt);
   if (zt > 0.12) wantPhotos = true;
   beginPhotos();
-  cam.x = damp(cam.x, 0, 7 * home, dt); cam.y = damp(cam.y, HOME_Y, 7 * home, dt);
+  if (!(gate.active && gate.pin)) {
+    cam.x = damp(cam.x, 0, 7 * home, dt); cam.y = damp(cam.y, HOME_Y, 7 * home, dt);
+  }
   cam.x = clamp(cam.x, -CW / 2 - 0.6, CW / 2 + 0.6); cam.y = clamp(cam.y, -2.5, CH + 1.2);
+  holdChildPin();
 
   // Time dilation: a waterfall far away, a slow drift up close, almost still behind an open story.
   const scale = Math.exp(cam.ls);
@@ -791,6 +803,7 @@ function stage(dt, zt) {
   show = (1 - smooth(0.03, 0.2, zt)) * born;
   const bx = childX(childPose.feet);
   const top = project(bx, childY(childPose.top), CHILD.z), base = project(bx, 0, CHILD.z);
+  window.__foot = { x: base.x, y: base.y, u: childPose.feet };
   const ch = base.y - top.y, cw = ch * 0.7;
   $child.style.transform = `translate3d(${(base.x - cw / 2).toFixed(1)}px,${top.y.toFixed(1)}px,0)`;
   $child.style.width = `${cw.toFixed(1)}px`; $child.style.height = `${ch.toFixed(1)}px`;
@@ -885,16 +898,49 @@ function drawWorld(rt, mirror) {
   // While the doorway is open he is drawn after the composite, in front of the hole.
   // The reflection still carries him, so the water under his feet stays his.
   const overlayChild = gate.active && !mirror && gate.open > 0.001;
-  if (childOn && show > 0.003 && !overlayChild) {
-    const c = P.child, cu = c.u; gl.useProgram(c.p);
-    gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
-    gl.uniform1f(cu.uMirror, mirror ? 1 : 0); gl.uniform1f(cu.uZ, CHILD.z);
-    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
-    gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
-    gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
-    gl.uniform1f(cu.uAlpha, show); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 0);
-    gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  if (childOn && show > 0.003 && !overlayChild) drawChildLayers(mirror, show);
+}
+
+// One filmed body. The hands-up frame was shot on the center line, so its quad is
+// shifted until those feet sit on the feet he had when Castle was clicked.
+// The previous frame fades out on the same feet, so he never travels and never doubles.
+function childDrawShift() {
+  if (!gate.seeked || !gate.holdPose) return 0;
+  return (gate.holdPose.feet - filmPose.feet) * CHILD.frameW;
+}
+function drawOneChild(tex, shift, alpha, mirror) {
+  if (!tex || alpha < 0.004) return;
+  const direct = !mirror && gate.active && gate.open > 0.001;
+  const c = P.child, cu = c.u;
+  gl.useProgram(c.p);
+  gl.uniform3f(cu.uCam, cam.x, cam.y, camDist());
+  gl.uniform1f(cu.uF, F);
+  gl.uniform1f(cu.uAspect, W / H);
+  gl.uniform1f(cu.uMirror, mirror ? 1 : 0);
+  gl.uniform1f(cu.uZ, CHILD.z);
+  gl.uniform4f(cu.uRect, childX(0) + shift, -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
+  gl.activeTexture(gl.TEXTURE5);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.uniform1i(cu.uTex, 5);
+  gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
+  gl.uniform1f(cu.uAlpha, alpha);
+  gl.uniform1f(cu.uH, CHILD.h);
+  gl.uniform1f(cu.uDirect, direct ? 1 : 0);
+  gl.bindVertexArray(vaos.unit);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+function drawChildLayers(mirror, alpha) {
+  const shift = childDrawShift();
+  const blend = gate.seeked ? (gate.blend || 0) : 0;
+  gl.enable(gl.BLEND);
+  gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  if (gate.snapped && gate.seeked && blend < 1) {
+    drawOneChild(T.childPrev, 0, alpha * (1 - blend), mirror);
+    drawOneChild(T.child, shift, alpha * blend, mirror);
+  } else {
+    drawOneChild(T.child, gate.seeked ? shift : 0, alpha, mirror);
   }
+  if (!mirror) gl.disable(gl.BLEND);
 }
 
 // The film's newest frame, uploaded only when there is one.
@@ -965,17 +1011,7 @@ function render() {
   });
 
   if (gate.active && childOn && show > 0.003 && gate.open > 0.001) {
-    gl.enable(gl.BLEND);
-    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    const c = P.child, cu = c.u; gl.useProgram(c.p);
-    gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
-    gl.uniform1f(cu.uMirror, 0); gl.uniform1f(cu.uZ, CHILD.z);
-    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
-    gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
-    gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
-    gl.uniform1f(cu.uAlpha, show * (1 - (gate.expand || 0))); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 1);
-    gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.disable(gl.BLEND);
+    drawChildLayers(false, show * (1 - (gate.expand || 0)));
   }
 }
 
@@ -1011,7 +1047,10 @@ function curtainPortal(rtW, rtH) {
   const feet = project(poseX, 0, CHILD.z);
   const bodyH = Math.max(64, Math.abs(feet.y - head.y));
   const baseHalf = clamp(Math.max(bodyH * 1.05, W * 0.12), 76, W * 0.19);
-  const half = baseHalf + (W * 0.56 - baseHalf) * expand;
+  // The arch is narrowest at the floor and the top (0.62 of the middle). Grow from
+  // his feet until that narrow edge still reaches both sides of the screen.
+  const cover = Math.max(horizon.x, W - horizon.x) / 0.62 + 32;
+  const half = baseHalf + (Math.max(cover, baseHalf) - baseHalf) * expand;
   const sx = (rtW || W) / Math.max(W, 1);
   const sy = (rtH || H) / Math.max(H, 1);
   return {
@@ -1073,6 +1112,7 @@ function prefetchCastle() {
 }
 function raiseHands() {
   // Hold the hands-up frame when it can be found. The rain is never paused for this.
+  // His feet stay at gate.holdPose; this seek only changes the picture.
   if (gate.hands) return;
   gate.hands = true;
   try { $video.pause(); } catch (e) { /* not playing yet */ }
@@ -1082,6 +1122,7 @@ function raiseHands() {
     if (Math.abs(($video.currentTime || 0) - HANDS_AT) > 0.35 || $video.readyState < 2) return;
     try { $video.pause(); } catch (e) { /* already paused */ }
     gate.seeked = true;
+    gate.blendT0 = performance.now();
     childDirty = true;
   };
   const seek = () => {
@@ -1092,17 +1133,62 @@ function raiseHands() {
   if ($video.readyState >= 2) seek();
   else $video.addEventListener('loadeddata', seek, { once: true });
 }
+function prepTex(tex) {
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+}
+function snapshotChild() {
+  try {
+    if (!gl || !$video.videoWidth || $video.readyState < 2) return;
+    if (!T.childPrev) T.childPrev = gl.createTexture();
+    const snap = gate.snap || (gate.snap = document.createElement('canvas'));
+    if (snap.width !== $video.videoWidth || snap.height !== $video.videoHeight) {
+      snap.width = $video.videoWidth;
+      snap.height = $video.videoHeight;
+    }
+    snap.getContext('2d').drawImage($video, 0, 0);
+    prepTex(T.childPrev);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, snap);
+    gate.snapped = true;
+  } catch (e) { /* the hands frame still lands on the saved feet */ }
+}
+function pinChild() {
+  const wx = childX(childPose.feet);
+  const scr = project(wx, 0, CHILD.z);
+  // The shared zoom anchor is for the curtain plane (z = 0). His feet are in front of it,
+  // so the pin is solved at his own depth and applied after the camera zoom.
+  gate.pin = { sx: scr.x, sy: scr.y, wx, wy: 0 };
+}
+function holdChildPin() {
+  if (!gate.active || !gate.pin) return;
+  const d = camDist() - CHILD.z;
+  const { sx, sy, wx, wy } = gate.pin;
+  cam.x = wx - (sx / W * 2 - 1) * (W / H) * d / F;
+  cam.y = wy - (1 - sy / H * 2) * d / F;
+}
 function liveCastleOk() {
   return innerWidth >= 800 && matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
+function castleFrame() {
+  return document.getElementById('castle-frame');
+}
 function armCastleView() {
   const still = document.getElementById('castle-still');
-  const frame = document.getElementById('castle-frame');
+  const frame = castleFrame();
   gate.live = liveCastleOk();
   if (still) still.src = new URL(gate.live ? '../castle/assets/arrive-front.jpg' : '../castle/assets/arrive-front-phone.jpg', document.baseURI).href;
   if (!gate.live) {
     gate.castleReady = true;
     gate.useStill = true;
+    return;
+  }
+  if (frame?.contentWindow?.__castle) {
+    gate.castleReady = true;
+    body.classList.add('castle-live');
+    frame.contentWindow.postMessage({ type: 'hd-wake' }, location.origin);
     return;
   }
   if (!frame || frame.getAttribute('src')) return;
@@ -1111,8 +1197,76 @@ function armCastleView() {
   u.searchParams.set('veil', '1');
   frame.src = u.href;
 }
-function rememberPoster(url) {
-  try { if (url) sessionStorage.setItem('hd-arrive-poster', url); } catch (e) { /* private mode */ }
+function tellCastle(message) {
+  const frame = castleFrame();
+  if (frame?.contentWindow) frame.contentWindow.postMessage(message, location.origin);
+}
+function revealCastle() {
+  if (gate.shelled) return;
+  gate.navigated = true;
+  gate.shelled = true;
+  const frame = castleFrame();
+  // The homepage document, and its one audio element, stay. The castle view is the iframe.
+  if (!gate.live && frame && !frame.getAttribute('src')) {
+    sleeping = true;
+    const u = new URL('../castle/', document.baseURI);
+    u.searchParams.set('arrived', '1');
+    u.searchParams.set('veil', '1');
+    frame.src = u.href;
+  } else {
+    sleeping = true;
+    tellCastle({ type: 'hd-show-ui' });
+    tellCastle({ type: 'hd-music-state', on: musicOn });
+  }
+  body.classList.add('castle-view');
+  const page = new URL(location.href);
+  let path = page.pathname;
+  if (path.endsWith('/index.html')) path = path.slice(0, -'/index.html'.length);
+  if (!path.endsWith('/')) path += '/';
+  const shown = new URL('preview/castle/', page.origin + path);
+  shown.searchParams.set('arrived', '1');
+  if (!history.state || history.state.hd !== 'castle') {
+    history.pushState({ hd: 'castle' }, '', `${shown.pathname}${shown.search}`);
+  }
+  if (window.__parting) window.__parting.navMs = performance.now() - gate.t0;
+}
+function hideCastleView() {
+  if (!body.classList.contains('castle-view')) return;
+  const frame = castleFrame();
+  if (!liveCastleOk()) {
+    if (frame) {
+      frame.src = 'about:blank';
+      frame.removeAttribute('src');
+    }
+  } else {
+    tellCastle({ type: 'hd-sleep' });
+  }
+  body.classList.remove('castle-view', 'parting', 'castle-live');
+  sleeping = false;
+  gate.active = false;
+  gate.shelled = false;
+  gate.navigated = false;
+  gate.seeked = false;
+  gate.hands = false;
+  gate.ui = false;
+  gate.snapped = false;
+  gate.open = 0;
+  gate.glide = 0;
+  gate.expand = 0;
+  gate.expandT0 = null;
+  gate.blend = 0;
+  gate.holdPose = null;
+  gate.pin = null;
+  anchor = null;
+  canvas.style.opacity = '';
+  const back = gate.holdTime;
+  if (back != null && $video && Math.abs(($video.currentTime || 0) - back) > 0.08) {
+    const resume = () => { if (!REDUCED && !gate.active) $video.play().catch(() => {}); };
+    $video.addEventListener('seeked', resume, { once: true });
+    try { $video.currentTime = back; } catch (e) { resume(); }
+  } else if (!REDUCED) {
+    $video.play().catch(() => {});
+  }
 }
 function finishCastle(force) {
   if (gate.navigated) return;
@@ -1120,34 +1274,38 @@ function finishCastle(force) {
     if (window.__parting) window.__parting.readyToGo = performance.now() - gate.t0;
     return;
   }
-  gate.navigated = true;
-  if (window.__parting) window.__parting.navMs = performance.now() - gate.t0;
-  saveMusicTime();
-  const frame = document.getElementById('castle-frame');
-  if (gate.live && frame?.contentWindow?.__snapCastle) {
-    try {
-      const snap = frame.contentWindow.__snapCastle();
-      if (snap && snap.length < 2000000) rememberPoster(snap);
-    } catch (e) { /* still covers the gap */ }
-  } else {
-    const still = document.getElementById('castle-still');
-    if (still?.currentSrc || still?.src) rememberPoster(still.currentSrc || still.src);
-  }
-  const u = new URL('../castle/', document.baseURI);
-  u.searchParams.set('arrived', '1');
-  if (!gate.live || !sessionStorage.getItem('hd-arrive-poster')) u.searchParams.set('softui', '1');
-  location.replace(u.href);
+  revealCastle();
 }
 window.__finishCastle = () => finishCastle(true);
 addEventListener('message', e => {
-  const frame = document.getElementById('castle-frame');
-  if (!frame || e.source !== frame.contentWindow || !e.data || e.data.type !== 'hd-castle-ready') return;
-  gate.castleReady = true;
-  body.classList.add('castle-live');
-  if (window.__parting) window.__parting.readyMs = performance.now() - window.__parting.t0;
+  const frame = castleFrame();
+  if (e.origin !== location.origin || !frame || e.source !== frame.contentWindow || !e.data) return;
+  if (e.data.type === 'hd-castle-ready') {
+    gate.castleReady = true;
+    body.classList.add('castle-live');
+    tellCastle({ type: 'hd-music-state', on: musicOn });
+    if (gate.shelled) tellCastle({ type: 'hd-show-ui' });
+    if (window.__parting) window.__parting.readyMs = performance.now() - window.__parting.t0;
+  } else if (e.data.type === 'hd-music-toggle') {
+    setMusic(!musicOn);
+  } else if (e.data.type === 'hd-home') {
+    if (history.state && history.state.hd === 'castle') history.back();
+    else hideCastleView();
+  }
+});
+addEventListener('popstate', () => {
+  const showing = history.state && history.state.hd === 'castle';
+  if (showing) {
+    body.classList.add('castle-view');
+    sleeping = true;
+    tellCastle({ type: 'hd-wake' });
+    tellCastle({ type: 'hd-show-ui' });
+  } else {
+    hideCastleView();
+  }
 });
 function beginCastle() {
-  if (gate.active) return;
+  if (gate.active || body.classList.contains('castle-view')) return;
   const now = performance.now();
   gate.active = true;
   gate.t0 = now;
@@ -1156,9 +1314,18 @@ function beginCastle() {
   gate.open = 0.045;
   gate.glide = 0;
   gate.expand = 0;
+  gate.expandT0 = null;
+  gate.seeked = false;
+  gate.hands = false;
+  gate.blend = 0;
+  gate.navigated = false;
+  gate.shelled = false;
+  gate.holdPose = { feet: childPose.feet, hand: childPose.hand, top: childPose.top };
+  gate.holdTime = $video.currentTime || 0;
+  pinChild();
+  snapshotChild();
   body.classList.add('parting');
   if (body.classList.contains('menu-open')) setMenu(false);
-  saveMusicTime();
   raiseHands();
   armCastleView();
   publishPortal();
@@ -1171,18 +1338,19 @@ function gateTick() {
   const openT = clamp(p / OPEN_END, 0, 1);
   gate.open = 1 - Math.pow(1 - openT, 1.55);
   gate.glide = smooth(OPEN_END, GLIDE_END, p);
+  if (gate.seeked && gate.blendT0) gate.blend = clamp((performance.now() - gate.blendT0) / (BLEND_S * 1000), 0, 1);
   if (!gate.castleReady && p >= 3.4) gate.castleReady = true;
   if (gate.castleReady && p >= GLIDE_END && gate.expandT0 == null) gate.expandT0 = p;
   gate.expand = gate.expandT0 == null ? 0 : smooth(gate.expandT0, gate.expandT0 + EXPAND_DUR, p);
   gate.p = p;
+  // Zoom toward the door, but keep the pinned foot on the same screen pixel.
   if (gate.glide > 0 && (gate.expand || 0) < 0.2) {
     cam.lsT = LS_MIN() + gate.glide * 0.16;
     tween = null;
-    anchor = null;
   }
   if (gate.expand > 0.12 && gate.live && !gate.ui) {
     gate.ui = true;
-    document.getElementById('castle-frame')?.contentWindow?.postMessage({ type: 'hd-show-ui' }, location.origin);
+    tellCastle({ type: 'hd-show-ui' });
   }
   publishPortal();
   if (window.__parting) {
@@ -1206,11 +1374,9 @@ async function boot() {
   P.composite = program(POST_VS, COMPOSITE_FS);
   P.child = program(CHILD_VS, CHILD_FS);
   T.child = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, T.child);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  prepTex(T.child);
+  T.childPrev = gl.createTexture();
+  prepTex(T.childPrev);
   placeStill();
 
   const strip = new Float32Array((SEG + 1) * 4);

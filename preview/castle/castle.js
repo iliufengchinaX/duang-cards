@@ -1020,6 +1020,7 @@
   }
 
   function frame(now) {
+    if (window.__hdSleep) { requestAnimationFrame(frame); return; }
     var dt = Math.min(0.05, (now - prev) / 1000); prev = now;
     if (document.documentElement.classList.contains('paused-scene')) dt = 0;
     var r = stage.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
@@ -1087,8 +1088,10 @@
     try { return out.toDataURL('image/jpeg', 0.72); } catch (err) { return ''; }
   };
   addEventListener('message', function (e) {
-    if (!e.data || e.data.type !== 'hd-show-ui') return;
-    document.documentElement.classList.add('show-ui');
+    if (!e.data) return;
+    if (e.data.type === 'hd-show-ui') document.documentElement.classList.add('show-ui');
+    if (e.data.type === 'hd-sleep') window.__hdSleep = true;
+    if (e.data.type === 'hd-wake') window.__hdSleep = false;
   });
   requestAnimationFrame(frame);
   window.__tick = function (n) {

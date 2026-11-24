@@ -100,7 +100,7 @@ body.tip #tip .tip-body{opacity:1;translate:0 0;filter:none}
   background:linear-gradient(rgb(11 8 5 / .82),rgb(11 8 5 / .4) 55%,transparent);opacity:calc(1 - var(--hero,1));transition:opacity .4s ease}
 .wordmark{justify-self:start;display:flex;align-items:baseline;gap:12px;color:var(--gold-hi);
   padding:11px 18px 12px;border-radius:999px}
-.wm-en{font:500 18px/1 var(--serif);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.wm-en{font:400 18px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
 
 .nav{display:flex;gap:2px;padding:5px;border-radius:999px}
 .nav a{position:relative;padding:11px 16px;border-radius:999px;font:400 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold-hi);
@@ -194,6 +194,18 @@ body.castle-live #castle-still,body.castle-live .rift-meadow{opacity:0;transitio
 #castle-frame{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1;opacity:0;pointer-events:none;
   transform:scale(var(--castle-scale,1));transform-origin:var(--door-x,50%) 46%}
 body.castle-live #castle-frame{opacity:1;transition:opacity .4s ease}
+body.castle-view #castle-frame{opacity:1;pointer-events:auto;z-index:30;transform:none}
+body.castle-view #stream,
+body.castle-view .top,
+body.castle-view .foot,
+body.castle-view #child,
+body.castle-view #cursor,
+body.castle-view #ring,
+body.castle-view #rift,
+body.castle-view .rift-bloom,
+body.castle-view .rift-veil{opacity:0;visibility:hidden;pointer-events:none}
+body.castle-view #castle-still{opacity:0;visibility:hidden}
+body.castle-view:not(.castle-live) #castle-still{opacity:1;visibility:visible}
 body.parting #stream{transition:none}
 body.parting .foot,body.parting .top{opacity:0;transition:opacity .28s ease}
 body.parting #cursor,body.parting #ring{opacity:0}
