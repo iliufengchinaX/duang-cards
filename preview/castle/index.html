@@ -14,6 +14,7 @@
 (function () {
   var q = new URLSearchParams(location.search), h = document.documentElement;
   if (q.has('veil')) h.classList.add('veil');
+  if (q.has('arrived')) h.classList.add('arrived');
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('calm');
 })();
 </script>
@@ -168,7 +169,7 @@
   function ensure() {
     if (music.getAttribute('src')) return;
     music.preload = 'auto';
-    music.src = '../../assets/icarus.m4a';
+    music.src = '../home/assets/icarus.m4a';
     music.addEventListener('loadedmetadata', restoreTime, { once: true });
   }
   function playMusic() {
@@ -192,6 +193,8 @@
     else music.pause();
   });
   paint();
+  if (musicOn) playMusic();
+  window.addEventListener('pageshow', function () { if (musicOn) playMusic(); });
   document.addEventListener('pagehide', saveTime);
   document.addEventListener('visibilitychange', function () { if (document.hidden) saveTime(); });
   setInterval(saveTime, 1000);

@@ -145,6 +145,9 @@ a{color:inherit}
 
 /* ───────────── fairy-tale world ───────────── */
 .world{position:fixed;inset:0;z-index:0;overflow:hidden;background:#c5e6f8}
+html.arrived .world,html.arrived #castle{animation:castle-arrive .55s cubic-bezier(.16,.72,.18,1) both;transform-origin:50% 42%}
+@keyframes castle-arrive{from{transform:scale(1.08)}to{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){html.arrived .world,html.arrived #castle{animation:none}}
 .world-sky{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;pointer-events:none;user-select:none}
 
 /* ───────────── glass nav, the same pieces as the rain curtain ───────────── */

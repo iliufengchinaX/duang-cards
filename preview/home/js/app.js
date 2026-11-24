@@ -356,7 +356,6 @@ function startFilmFile() {
   $video.addEventListener('playing', () => { childDirty = true; });
   $video.addEventListener('canplay', () => {
     childDirty = true; restReady = true; beginRest();
-    if (gate.active) holdHands();
   }, { once: true });
   if (REDUCED || gate.active) $video.pause();
   else $video.play().catch(() => {});
@@ -908,64 +907,51 @@ window.__tick = (n = 1) => {
 // CASTLE holds the hands-up moment, then draws the rain apart. Duang fades with the cloth.
 // The castle, including its flying sprite, is already playing behind it.
 
-function curtainOpen(p) {
-  return smooth(0, 1, clamp((p - 0.55) / 4.15, 0, 1));
-}
-function armCastleFrame() {
-  const frame = document.getElementById('castle-frame');
-  if (!frame || frame.getAttribute('src')) return;
-  frame.src = new URL('../castle/?veil=1', document.baseURI).href;
-}
-function holdHands() {
-  // Play forward to the hands-up moment and hold it. Some browsers report this
-  // file as seekable only at 0, so a currentTime assignment never lands.
-  if (gate._holding) return;
-  gate._holding = true;
-  sleeping = true;
-  const watch = setInterval(() => {
-    if (!gate.active) { clearInterval(watch); return; }
-    if ($video.readyState < 2) return;
-    const now = $video.currentTime || 0;
-    if (now >= 2.02 && now < 2.55) {
-      $video.pause();
-      clearInterval(watch);
-      sleeping = false;
-      childDirty = true;
-      gate.seeked = true;
-      return;
-    }
-    if ($video.paused) {
-      $video.playbackRate = 1;
-      $video.muted = true;
-      $video.play().catch(() => { sleeping = false; gate.seeked = true; clearInterval(watch); });
-    }
-  }, 30);
-  setTimeout(() => {
-    if (!gate.seeked) { sleeping = false; gate.seeked = true; clearInterval(watch); }
-  }, 4000);
+// The old gate froze the rain (sleeping = true) until the film reached the hands-up
+// frame, then waited until gate.p passed 5.05 before navigating. That was the stall:
+// up to four seconds of a stuck frame, then another five seconds of curtain, and the
+// hidden castle iframe was thrown away on the way out. The seam below is CSS only.
+const RIFT_MS = 1040;
+function prefetchCastle() {
+  if (gate.active) return;
+  const files = [
+    ['../castle/', 'document'],
+    ['../castle/castle.js', 'script'],
+    ['../castle/style.css', 'style'],
+    ['../castle/assets/world.svg', 'image'],
+    ['../castle/assets/duang-sprites.webp', 'image'],
+    ['../castle/assets/logo-line.svg', 'image'],
+  ];
+  for (const [href, as] of files) {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = as;
+    link.href = new URL(href, document.baseURI).href;
+    document.head.appendChild(link);
+  }
+  const meadow = new Image();
+  meadow.decoding = 'async';
+  meadow.src = new URL('../castle/assets/world.svg', document.baseURI).href;
 }
 function beginCastle() {
   if (gate.active) return;
   gate.active = true;
+  gate.t0 = performance.now();
   body.classList.add('parting');
   if (body.classList.contains('menu-open')) setMenu(false);
-  armCastleFrame();
-  holdHands();
-  $announce.textContent = '幕布拉开，走进城堡。 The curtain is opening onto the castle.';
-}
-function gateTick(dt) {
-  if (gate.seeked && !$video.paused) $video.pause();
-  if (!gate.frozen) gate.p += dt;
-  gate.open = curtainOpen(gate.p);
-  cam.lsT = LS_MIN();
-  tween = null;
-  anchor = null;
-  if (!gate.frozen && !gate.navigated && gate.p > 5.05) {
+  saveMusicTime();
+  $announce.textContent = '一道金色的光隙打开，走进城堡。 A gold seam opens onto the castle.';
+  setTimeout(() => {
+    if (gate.navigated) return;
     gate.navigated = true;
+    saveMusicTime();
     const u = new URL('../castle/', document.baseURI);
     u.searchParams.set('arrived', '1');
     location.href = u.href;
-  }
+  }, REDUCED ? 0 : RIFT_MS);
+}
+function gateTick() {
+  // The rain keeps falling at the edges of the seam. The shader curtain stays closed.
 }
 
 // ────────────────────────────────────────────────────────────── boot
@@ -1038,13 +1024,11 @@ async function boot() {
   beginRest();
   window.__undertow = { cam, stories, fib, photos, streamLayer, get hover() { return hover; }, get handLine() { return handLine; }, pickLine, chapterAt, project, unproject, openStory, zoomBy, enter, LS_MIN, LS_MAX, get slot() { return SLOT; }, get spacing() { return SPACING; } };
   window.__gate = gate;
-  const shot = SHOTS[QS.get('shot')];
-  if (QS.has('play') || shot != null) {
-    armCastleFrame();
-    beginCastle();
-    if (shot != null) { gate.frozen = true; gate.p = shot; gate.open = curtainOpen(shot); }
-  } else {
-    setTimeout(armCastleFrame, 1200);
+  if (QS.has('play') || SHOTS[QS.get('shot')] != null) beginCastle();
+  else {
+    const warm = () => prefetchCastle();
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2000 });
+    else setTimeout(warm, 1400);
   }
 }
 boot().catch(err => {
