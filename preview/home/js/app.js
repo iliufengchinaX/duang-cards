@@ -36,7 +36,12 @@ const QS = new URLSearchParams(location.search);
 const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
 const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
 const HANDS_AT = 3.02;
-const BLEND_S = 0.26;
+const BLEND_S = 0.18;
+const GESTURE_IN = 2.95;
+const GESTURE_OUT = 4.0;
+// Measured hand span in the film (upper-frame width). The local gap follows this,
+// and it only reaches a full opening when the hands actually spread.
+const HAND_SPAN = [[2.95, 0.22], [3.12, 0.34], [3.25, 0.58], [3.38, 1], [3.50, 1], [4.0, 1]];
 const PART_S = 3.05;
 const OPEN_END = 1.05;
 const GLIDE_END = 2.15;
@@ -662,11 +667,12 @@ addEventListener('resize', () => { if (RT) resize(); });
 
 function step(dt, now) {
   intro += dt; time += dt;
-  if (gate.active) gateTick(dt);
   filmPose = poseAt($video.currentTime || 0);
-  // While the curtain is opening, his feet stay where they were at the click.
-  // The hands-up frame is a different picture; it is shifted onto those feet.
+  // Feet stay on the click. The playing film is shifted so those feet do not travel
+  // while the arms move.
   childPose = gate.active && gate.holdPose ? gate.holdPose : filmPose;
+  if (gate.active && gate.seeked && $video && !$video.paused) childDirty = true;
+  if (gate.active) gateTick(dt);
   const lsMin = LS_MIN(), lsMax = LS_MAX();
   if (tween) {
     const t = clamp((now - tween.t0) / tween.ms, 0, 1);
@@ -1110,28 +1116,62 @@ function prefetchCastle() {
   meadow.decoding = 'async';
   meadow.src = new URL('../castle/assets/world.svg', document.baseURI).href;
 }
-function raiseHands() {
-  // Hold the hands-up frame when it can be found. The rain is never paused for this.
-  // His feet stay at gate.holdPose; this seek only changes the picture.
+function handOpenAt(t) {
+  if (t < GESTURE_IN || t > GESTURE_OUT + 0.08) return 0;
+  let a = HAND_SPAN[0], b = HAND_SPAN[HAND_SPAN.length - 1];
+  for (let i = 1; i < HAND_SPAN.length; i++) {
+    if (t < HAND_SPAN[i][0]) { b = HAND_SPAN[i]; break; }
+    a = HAND_SPAN[i];
+  }
+  const k = b[0] > a[0] ? clamp((t - a[0]) / (b[0] - a[0]), 0, 1) : 1;
+  return a[1] + (b[1] - a[1]) * k;
+}
+function playGesture() {
+  // Play the filmed reach, not a held frame. Rain is never paused for the seek.
   if (gate.hands) return;
   gate.hands = true;
-  try { $video.pause(); } catch (e) { /* not playing yet */ }
   if (!filmStarted) startFilmFile();
-  const park = () => {
-    if (!gate.active || gate.seeked) return;
-    if (Math.abs(($video.currentTime || 0) - HANDS_AT) > 0.35 || $video.readyState < 2) return;
-    try { $video.pause(); } catch (e) { /* already paused */ }
+  const nowT = $video.currentTime || 0;
+  const already = nowT >= GESTURE_IN && nowT < 3.2;
+  const startPlay = () => {
+    if (!gate.active) return;
     gate.seeked = true;
-    gate.blendT0 = performance.now();
+    gate.playedGesture = true;
     childDirty = true;
+    $video.playbackRate = 1;
+    $video.play().catch(() => {});
   };
-  const seek = () => {
-    if (!gate.active || $video.readyState < 2) return;
-    $video.addEventListener('seeked', park, { once: true });
-    try { $video.currentTime = HANDS_AT; } catch (e) { /* keep the frame already showing */ }
+  if (already) {
+    gate.blend = 1;
+    startPlay();
+    return;
+  }
+  const token = (gate.seekToken = (gate.seekToken || 0) + 1);
+  const attempt = (tries) => {
+    if (!gate.active || gate.seeked || gate.seekToken !== token) return;
+    if ($video.readyState < 2) {
+      if (tries < 8) $video.addEventListener('loadeddata', () => attempt(tries + 1), { once: true });
+      return;
+    }
+    const onSeek = () => {
+      if (!gate.active || gate.seekToken !== token || gate.seeked) return;
+      if (Math.abs(($video.currentTime || 0) - GESTURE_IN) > 0.5) return;
+      $video.removeEventListener('seeked', onSeek);
+      gate.blendT0 = performance.now();
+      startPlay();
+    };
+    $video.addEventListener('seeked', onSeek);
+    try { $video.currentTime = GESTURE_IN; } catch (e) { /* retry */ }
+    setTimeout(() => {
+      if (!gate.active || gate.seeked || gate.seekToken !== token) return;
+      if (Math.abs(($video.currentTime || 0) - GESTURE_IN) < 0.5) {
+        $video.removeEventListener('seeked', onSeek);
+        gate.blendT0 = performance.now();
+        startPlay();
+      } else if (tries < 4) attempt(tries + 1);
+    }, 280);
   };
-  if ($video.readyState >= 2) seek();
-  else $video.addEventListener('loadeddata', seek, { once: true });
+  attempt(0);
 }
 function prepTex(tex) {
   gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -1318,6 +1358,9 @@ function beginCastle() {
   gate.seeked = false;
   gate.hands = false;
   gate.blend = 0;
+  gate.playedGesture = false;
+  gate.handOpen = 0;
+  gate.gestureP = null;
   gate.navigated = false;
   gate.shelled = false;
   gate.holdPose = { feet: childPose.feet, hand: childPose.hand, top: childPose.top };
@@ -1326,7 +1369,7 @@ function beginCastle() {
   snapshotChild();
   body.classList.add('parting');
   if (body.classList.contains('menu-open')) setMenu(false);
-  raiseHands();
+  playGesture();
   armCastleView();
   publishPortal();
   window.__parting = { t0: now, classMs: performance.now() - now, litMs: 0, navMs: 0, readyMs: gate.castleReady ? 0 : 0, totalMs: PART_S * 1000, live: !!gate.live };
@@ -1336,11 +1379,19 @@ function gateTick() {
   const p = gate.frozen ? gate.p : (performance.now() - gate.t0) / 1000;
   if (!gate.frozen) gate.p = p;
   const openT = clamp(p / OPEN_END, 0, 1);
-  gate.open = 1 - Math.pow(1 - openT, 1.55);
-  gate.glide = smooth(OPEN_END, GLIDE_END, p);
+  const timeOpen = 1 - Math.pow(1 - openT, 1.55);
+  const vt = $video.currentTime || 0;
+  if (gate.seeked && gate.playedGesture) gate.handOpen = Math.max(gate.handOpen || 0, handOpenAt(vt));
+  // The local gap follows the filmed hands. The wider timed opening only takes over
+  // once that spread has happened, so a late first frame cannot skip the gesture.
+  const handsMoved = !!(gate.playedGesture && vt >= 3.38 && vt < 5);
+  gate.open = handsMoved ? Math.max(gate.handOpen || 0, timeOpen) : Math.max(0.04, gate.handOpen || 0);
+  if (!gate.gestureP && (handsMoved || p >= MAX_P)) gate.gestureP = p;
+  const gp = gate.gestureP == null ? 0 : Math.max(0, p - gate.gestureP);
+  gate.glide = smooth(0, 1.1, gp);
   if (gate.seeked && gate.blendT0) gate.blend = clamp((performance.now() - gate.blendT0) / (BLEND_S * 1000), 0, 1);
   if (!gate.castleReady && p >= 3.4) gate.castleReady = true;
-  if (gate.castleReady && p >= GLIDE_END && gate.expandT0 == null) gate.expandT0 = p;
+  if (gate.castleReady && gp >= 1.1 && gate.expandT0 == null) gate.expandT0 = p;
   gate.expand = gate.expandT0 == null ? 0 : smooth(gate.expandT0, gate.expandT0 + EXPAND_DUR, p);
   gate.p = p;
   // Zoom toward the door, but keep the pinned foot on the same screen pixel.
@@ -1353,12 +1404,20 @@ function gateTick() {
     tellCastle({ type: 'hd-show-ui' });
   }
   publishPortal();
+  window.__gesture = {
+    vt: Math.round(($video.currentTime || 0) * 1000) / 1000,
+    open: Math.round((gate.open || 0) * 1000) / 1000,
+    paused: !!$video.paused,
+    filmFeet: Math.round((filmPose.feet || 0) * 1000) / 1000,
+    filmHand: Math.round((filmPose.hand || 0) * 1000) / 1000,
+  };
   if (window.__parting) {
     window.__parting.p = p;
     window.__parting.expand = gate.expand;
     if (!window.__parting.litMs && gate.open > 0.08) window.__parting.litMs = performance.now() - gate.t0;
   }
-  if (!gate.navigated && ((gate.expand > 0.985 && p >= GLIDE_END) || p >= MAX_P)) finishCastle(false);
+  if (!gate.navigated && gate.expand > 0.985 && gate.gestureP != null) finishCastle(false);
+  else if (!gate.navigated && p >= 7) finishCastle(false);
 }
 
 // ────────────────────────────────────────────────────────────── boot
