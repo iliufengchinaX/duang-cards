@@ -36,7 +36,11 @@ const QS = new URLSearchParams(location.search);
 const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
 const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
 const HANDS_AT = 3.02;
-const PART_S = 1.48;
+const PART_S = 3.05;
+const OPEN_END = 1.05;
+const GLIDE_END = 2.15;
+const EXPAND_DUR = 0.9;
+const MAX_P = 4.6;
 const gate = { active: false, p: 0, frozen: false, open: 0, glide: 0, navigated: false, seeked: false, t0: 0, hold: false, hands: false };
 
 const rng = mulberry(0x2545f491);
@@ -969,8 +973,7 @@ function render() {
     gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
     gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
     gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
-    const passed = smooth(1.2, PART_S, gate.p || 0);
-    gl.uniform1f(cu.uAlpha, show * (1 - passed)); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 1);
+    gl.uniform1f(cu.uAlpha, show * (1 - (gate.expand || 0))); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 1);
     gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.disable(gl.BLEND);
   }
@@ -999,14 +1002,16 @@ window.__tick = (n = 1) => {
 function curtainPortal(rtW, rtH) {
   const poseX = childX(childPose.feet);
   const horizon = project(poseX, 0, 0);
+  const expand = gate.expand || 0;
   if (gate.active) {
     if (!gate.floorLock) gate.floorLock = horizon.y;
-    horizon.y = Math.min(horizon.y, gate.floorLock);
+    horizon.y = gate.floorLock + (H + 64 - gate.floorLock) * expand;
   }
   const head = project(poseX, childY(Math.min(childPose.top, 0.12)), CHILD.z);
   const feet = project(poseX, 0, CHILD.z);
   const bodyH = Math.max(64, Math.abs(feet.y - head.y));
-  const half = clamp(Math.max(bodyH * 1.05, W * 0.12), 76, W * 0.19);
+  const baseHalf = clamp(Math.max(bodyH * 1.05, W * 0.12), 76, W * 0.19);
+  const half = baseHalf + (W * 0.56 - baseHalf) * expand;
   const sx = (rtW || W) / Math.max(W, 1);
   const sy = (rtH || H) / Math.max(H, 1);
   return {
@@ -1019,19 +1024,25 @@ function curtainPortal(rtW, rtH) {
 function publishPortal() {
   const portal = curtainPortal(PW, PH);
   const open = gate.open;
+  const approach = Math.max(gate.glide || 0, gate.expand || 0);
+  const scale = 1.08 - 0.08 * approach;
   const w = portal.css.half * 2 * Math.max(open, 0.02);
   body.style.setProperty('--door-x', `${portal.css.x.toFixed(1)}px`);
   body.style.setProperty('--door-b', `${Math.max(0, portal.css.y).toFixed(1)}px`);
   body.style.setProperty('--door-w', `${w.toFixed(1)}px`);
   body.style.setProperty('--open', open.toFixed(3));
-  body.style.setProperty('--glide', gate.glide.toFixed(3));
+  body.style.setProperty('--glide', (gate.glide || 0).toFixed(3));
+  body.style.setProperty('--castle-scale', scale.toFixed(4));
+  canvas.style.opacity = gate.active ? String(1 - (gate.expand || 0)) : '';
   window.__portal = {
     x: portal.css.x,
     floorY: portal.css.y,
     width: portal.css.half * 2,
     openWidth: w,
     open,
-    glide: gate.glide,
+    glide: gate.glide || 0,
+    expand: gate.expand || 0,
+    scale,
     vw: W,
     vh: H,
   };
@@ -1044,6 +1055,8 @@ function prefetchCastle() {
     ['../castle/castle.js', 'script'],
     ['../castle/style.css', 'style'],
     ['../castle/assets/world.svg', 'image'],
+    ['../castle/assets/arrive-front.jpg', 'image'],
+    ['../castle/assets/arrive-front-phone.jpg', 'image'],
     ['../castle/assets/duang-sprites.webp', 'image'],
     ['../castle/assets/logo-line.svg', 'image'],
   ];
@@ -1079,6 +1092,60 @@ function raiseHands() {
   if ($video.readyState >= 2) seek();
   else $video.addEventListener('loadeddata', seek, { once: true });
 }
+function liveCastleOk() {
+  return innerWidth >= 800 && matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+function armCastleView() {
+  const still = document.getElementById('castle-still');
+  const frame = document.getElementById('castle-frame');
+  gate.live = liveCastleOk();
+  if (still) still.src = new URL(gate.live ? '../castle/assets/arrive-front.jpg' : '../castle/assets/arrive-front-phone.jpg', document.baseURI).href;
+  if (!gate.live) {
+    gate.castleReady = true;
+    gate.useStill = true;
+    return;
+  }
+  if (!frame || frame.getAttribute('src')) return;
+  const u = new URL('../castle/', document.baseURI);
+  u.searchParams.set('arrived', '1');
+  u.searchParams.set('veil', '1');
+  frame.src = u.href;
+}
+function rememberPoster(url) {
+  try { if (url) sessionStorage.setItem('hd-arrive-poster', url); } catch (e) { /* private mode */ }
+}
+function finishCastle(force) {
+  if (gate.navigated) return;
+  if (!force && (gate.hold || window.__holdNav)) {
+    if (window.__parting) window.__parting.readyToGo = performance.now() - gate.t0;
+    return;
+  }
+  gate.navigated = true;
+  if (window.__parting) window.__parting.navMs = performance.now() - gate.t0;
+  saveMusicTime();
+  const frame = document.getElementById('castle-frame');
+  if (gate.live && frame?.contentWindow?.__snapCastle) {
+    try {
+      const snap = frame.contentWindow.__snapCastle();
+      if (snap && snap.length < 2000000) rememberPoster(snap);
+    } catch (e) { /* still covers the gap */ }
+  } else {
+    const still = document.getElementById('castle-still');
+    if (still?.currentSrc || still?.src) rememberPoster(still.currentSrc || still.src);
+  }
+  const u = new URL('../castle/', document.baseURI);
+  u.searchParams.set('arrived', '1');
+  if (!gate.live || !sessionStorage.getItem('hd-arrive-poster')) u.searchParams.set('softui', '1');
+  location.replace(u.href);
+}
+window.__finishCastle = () => finishCastle(true);
+addEventListener('message', e => {
+  const frame = document.getElementById('castle-frame');
+  if (!frame || e.source !== frame.contentWindow || !e.data || e.data.type !== 'hd-castle-ready') return;
+  gate.castleReady = true;
+  body.classList.add('castle-live');
+  if (window.__parting) window.__parting.readyMs = performance.now() - window.__parting.t0;
+});
 function beginCastle() {
   if (gate.active) return;
   const now = performance.now();
@@ -1087,39 +1154,43 @@ function beginCastle() {
   gate.floorLock = 0;
   gate.hold = gate.hold || QS.has('hold');
   gate.open = 0.045;
+  gate.glide = 0;
+  gate.expand = 0;
   body.classList.add('parting');
   if (body.classList.contains('menu-open')) setMenu(false);
   saveMusicTime();
   raiseHands();
+  armCastleView();
   publishPortal();
-  window.__parting = { t0: now, classMs: performance.now() - now, litMs: 0, navMs: 0, totalMs: PART_S * 1000, openAt: {} };
+  window.__parting = { t0: now, classMs: performance.now() - now, litMs: 0, navMs: 0, readyMs: gate.castleReady ? 0 : 0, totalMs: PART_S * 1000, live: !!gate.live };
   $announce.textContent = '端端拨开面前的光帘，走进城堡。 Duang parts the rain in front of him and the castle shows through.';
 }
-function gateTick(dt) {
+function gateTick() {
   const p = gate.frozen ? gate.p : (performance.now() - gate.t0) / 1000;
   if (!gate.frozen) gate.p = p;
-  const openT = clamp(p / 1.02, 0, 1);
-  gate.open = 1 - Math.pow(1 - openT, 1.65);
-  gate.glide = smooth(0.78, PART_S, p);
+  const openT = clamp(p / OPEN_END, 0, 1);
+  gate.open = 1 - Math.pow(1 - openT, 1.55);
+  gate.glide = smooth(OPEN_END, GLIDE_END, p);
+  if (!gate.castleReady && p >= 3.4) gate.castleReady = true;
+  if (gate.castleReady && p >= GLIDE_END && gate.expandT0 == null) gate.expandT0 = p;
+  gate.expand = gate.expandT0 == null ? 0 : smooth(gate.expandT0, gate.expandT0 + EXPAND_DUR, p);
   gate.p = p;
-  if (gate.glide > 0) {
-    cam.lsT = LS_MIN() + gate.glide * 0.46;
+  if (gate.glide > 0 && (gate.expand || 0) < 0.2) {
+    cam.lsT = LS_MIN() + gate.glide * 0.16;
     tween = null;
     anchor = null;
   }
+  if (gate.expand > 0.12 && gate.live && !gate.ui) {
+    gate.ui = true;
+    document.getElementById('castle-frame')?.contentWindow?.postMessage({ type: 'hd-show-ui' }, location.origin);
+  }
   publishPortal();
-  if (window.__parting && !window.__parting.litMs && gate.open > 0.08) {
-    window.__parting.litMs = performance.now() - gate.t0;
+  if (window.__parting) {
+    window.__parting.p = p;
+    window.__parting.expand = gate.expand;
+    if (!window.__parting.litMs && gate.open > 0.08) window.__parting.litMs = performance.now() - gate.t0;
   }
-  if (!gate.navigated && p >= PART_S) {
-    gate.navigated = true;
-    if (window.__parting) window.__parting.navMs = performance.now() - gate.t0;
-    saveMusicTime();
-    if (gate.hold || window.__holdNav) return;
-    const u = new URL('../castle/', document.baseURI);
-    u.searchParams.set('arrived', '1');
-    location.href = u.href;
-  }
+  if (!gate.navigated && ((gate.expand > 0.985 && p >= GLIDE_END) || p >= MAX_P)) finishCastle(false);
 }
 
 // ────────────────────────────────────────────────────────────── boot

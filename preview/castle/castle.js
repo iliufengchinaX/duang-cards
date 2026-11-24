@@ -575,7 +575,7 @@
 
   var gl = null;
   if (!Q.has('nogl')) {
-    try { gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true, preserveDrawingBuffer: STILL, powerPreference: 'low-power' }) || canvas.getContext('experimental-webgl'); } catch (e) { gl = null; }
+    try { gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true, preserveDrawingBuffer: STILL || Q.has('veil'), powerPreference: 'low-power' }) || canvas.getContext('experimental-webgl'); } catch (e) { gl = null; }
   }
   var state = {
     yaw: -0.95, pitch: FB_PITCH, vyaw: 0, t0: performance.now(), lastUser: -1e9, lastAct: performance.now(),
@@ -1064,8 +1064,32 @@
     if (bgPeaks) { var pp = -(state.yaw * 40); bgPeaks.style.transform = 'translate3d(' + (((pp % 720) + 720) % 720 - 720).toFixed(1) + 'px,0,0)'; }
     if (bgCloud) bgCloud.style.transform = 'translate3d(' + (-(state.yaw * 30)).toFixed(1) + 'px,0,0)';
     if (turnBtn) { var back = Math.cos(state.yaw) < 0; if (back !== turnBtn._back) { turnBtn._back = back; turnBtn.textContent = back ? '转回正面' : '转到背面'; turnBtn.setAttribute('aria-label', back ? '把城堡转回正面' : '把城堡转到背面'); } }
+    if (!firstFrameAt) firstFrameAt = now;
+    if (!readySent && (tex || now - firstFrameAt > 900)) {
+      readySent = true;
+      var hold = document.getElementById('arrive-poster');
+      if (hold) hold.classList.add('gone');
+      if (window.parent !== window) { try { parent.postMessage({ type: 'hd-castle-ready' }, location.origin); } catch (err) { /* opened on its own */ } }
+    }
     requestAnimationFrame(frame);
   }
+  var readySent = false, firstFrameAt = 0;
+  window.__snapCastle = function () {
+    var c = document.getElementById('castle');
+    if (!c || !c.width) return '';
+    var w = 960, h = Math.max(1, Math.round(c.height * (w / c.width)));
+    var out = document.createElement('canvas');
+    out.width = w; out.height = h;
+    var ctx = out.getContext('2d');
+    ctx.fillStyle = '#c5e6f8';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(c, 0, 0, w, h);
+    try { return out.toDataURL('image/jpeg', 0.72); } catch (err) { return ''; }
+  };
+  addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'hd-show-ui') return;
+    document.documentElement.classList.add('show-ui');
+  });
   requestAnimationFrame(frame);
   window.__tick = function (n) {
     for (var i = 0; i < (n || 1); i++) frame(prev + 33.4);

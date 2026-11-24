@@ -145,9 +145,11 @@ a{color:inherit}
 
 /* ───────────── fairy-tale world ───────────── */
 .world{position:fixed;inset:0;z-index:0;overflow:hidden;background:#c5e6f8}
-html.arrived .world,html.arrived #castle{animation:castle-arrive .55s cubic-bezier(.16,.72,.18,1) both;transform-origin:50% 42%}
-@keyframes castle-arrive{from{transform:scale(1.08)}to{transform:scale(1)}}
-@media(prefers-reduced-motion:reduce){html.arrived .world,html.arrived #castle{animation:none}}
+@keyframes castle-ui-in{from{opacity:0}to{opacity:1}}
+html.softui .top,html.softui .bar,html.softui .foot{animation:castle-ui-in .6s ease both}
+@media(prefers-reduced-motion:reduce){html.softui .top,html.softui .bar,html.softui .foot{animation:none}}
+#arrive-poster{position:fixed;inset:0;z-index:4;width:100%;height:100%;object-fit:cover;object-position:center center;pointer-events:none;background:#c5e6f8}
+#arrive-poster.gone{display:none}
 .world-sky{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;pointer-events:none;user-select:none}
 
 /* ───────────── glass nav, the same pieces as the rain curtain ───────────── */
@@ -205,7 +207,9 @@ body.menu-open #menu{opacity:1;visibility:visible;transition:opacity .7s ease}
 body::after{content:"";position:fixed;inset:0;z-index:80;background:#0b0805;opacity:0;pointer-events:none;transition:opacity .48s ease}
 body.leaving::after{opacity:1}
 
-html.veil .top,html.veil .rooms,html.veil .foot,html.veil .bar,html.veil #menu,html.veil .spot{display:none!important}
+html.veil,html.veil body{overflow:hidden}
+html.veil:not(.show-ui) .top,html.veil:not(.show-ui) .rooms,html.veil:not(.show-ui) .foot,html.veil:not(.show-ui) .bar,html.veil:not(.show-ui) #menu,html.veil:not(.show-ui) .spot,html.veil:not(.show-ui) .icp,html.veil:not(.show-ui) #bubble{opacity:0!important;pointer-events:none!important}
+html.veil.show-ui .top,html.veil.show-ui .bar,html.veil.show-ui .foot,html.veil.show-ui .icp{animation:castle-ui-in .55s ease both}
 html.veil .stage{height:100vh;height:100dvh;min-height:0}
 @media(max-width:900px){
   .nav{display:none}

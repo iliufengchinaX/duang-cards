@@ -15,6 +15,7 @@
   var q = new URLSearchParams(location.search), h = document.documentElement;
   if (q.has('veil')) h.classList.add('veil');
   if (q.has('arrived')) h.classList.add('arrived');
+  if (q.has('softui')) h.classList.add('softui');
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('calm');
 })();
 </script>
@@ -199,6 +200,18 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) saveTime(); });
   setInterval(saveTime, 1000);
 })();
+</script>
+<img id="arrive-poster" alt="" hidden>
+<script>
+try {
+  var poster = sessionStorage.getItem('hd-arrive-poster');
+  if (poster && /(?:\?|&)arrived=/.test(location.search)) {
+    sessionStorage.removeItem('hd-arrive-poster');
+    var hold = document.getElementById('arrive-poster');
+    hold.src = poster;
+    hold.hidden = false;
+  }
+} catch (e) {}
 </script>
 <script src="castle.js"></script>
 </body>
