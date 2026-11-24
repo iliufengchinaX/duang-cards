@@ -44,6 +44,7 @@ layout(location=0) in vec2 aV;           // x: position along the fibre, y: side
 uniform highp sampler2D uStory;
 uniform vec3 uCam; uniform float uF, uAspect, uHpx, uMinPx, uMirror, uSpacing, uOpen;
 uniform vec2 uRes;
+uniform vec4 uPortal;                    // cx px, half-width px, floor px (bottom-up), -
 uniform vec2 uSelect;                    // line, amount
 uniform float uIdleL[${IDLE}], uIdleA[${IDLE}];
 out float vU, vY, vX0, vSeed, vFlare, vSide, vHalfPx, vQuadPx, vNorm, vCl, vCl2, vSpacePx, vPpu, vXw;
@@ -63,27 +64,33 @@ void main(){
   }
   p.x+=disp(s.x,p.y,fi,dy)*(1.-flare*.7);
   float y=p.y;
-  // Stage curtain. uOpen is 0 on the resting homepage, so this is skipped and the cloth
-  // hangs exactly as before. As it opens, each strand is drawn sideways and bends with
-  // the fold, gathering into a hem instead of being clipped by a straight edge.
+  // Duang parts only the rain in front of him. uOpen is 0 at rest, so this is skipped
+  // and every strand hangs where it always has. The sweep is a column centered on him,
+  // from the top of the veil down to the floor line — never the whole viewport, and
+  // never the water below that line. Outer strands stay put.
   if(uOpen>0.001){
     float cdepth=max(uCam.z-p.z,0.25);
     float t=clamp(uOpen,0.,1.);
-    float band=mix(110.,560.,t)*(uRes.x/1440.);
-    float inner=t*(uRes.x*0.5+band);
     float rest=((p.x-uCam.x)*uF/(uAspect*cdepth)*0.5+0.5)*uRes.x;
-    float sd=rest-uRes.x*0.5;
+    float py=((p.y-uCam.y)*uF/cdepth*0.5+0.5)*uRes.y;
+    float above=smoothstep(uPortal.z-8.,uPortal.z+36.,py);
+    float yN=clamp((py-uPortal.z)/max(uRes.y-uPortal.z,1.),0.,1.);
+    float arch=mix(.62,1.,sin(yN*3.14159265));
+    float halfW=uPortal.y*arch;
+    float band=mix(22.,52.,t)*(uRes.x/1440.);
+    float sd=rest-uPortal.x;
     float ad=abs(sd);
     float sgn=sd<0.?-1.:1.;
-    float edge=inner+band;
+    float edge=t*halfW+band;
     float inside=max(edge-ad,0.);
-    float pull=inside*inside/(inside+band*0.55);
-    float hemN=(ad+pull-edge)/(band*0.42);
-    float hem=exp(-hemN*hemN);
-    float fold=sin(y*1.15+sgn*0.8)*sin(y*0.38+2.1)*band*0.36*smoothstep(0.,.22,t);
-    float drape=sin(y*0.72+s.y*6.283)*pull*0.24;
+    float column=smoothstep(halfW+band*1.25,halfW*.2,ad);
+    float pull=inside*inside/(inside+band*.5)*column;
+    float hemN=(ad+pull-edge)/(band*.4);
+    float hem=exp(-hemN*hemN)*column;
+    float fold=sin(p.y*1.15+sgn*.8)*sin(p.y*.38+2.1)*band*.34*smoothstep(0.,.16,t);
+    float drape=sin(p.y*.72+s.y*6.283)*pull*.26;
     float wpp=2.*uAspect*cdepth/(uF*max(uRes.x,1.));
-    p.x+=(sgn*(pull+drape)+sgn*fold*hem)*wpp;
+    p.x+=(sgn*(pull+drape)+sgn*fold*hem)*wpp*above;
   }
   if(uMirror>.5) p.y=-p.y;
   float depth=uCam.z-p.z;
@@ -116,6 +123,7 @@ uniform sampler2DArray uArr;
 uniform highp sampler2D uStory, uLayers;
 uniform float uCount;
 uniform float uGain, uMirror, uIntro, uW, uS, uDim, uOpen;
+uniform vec4 uPortal;                     // cx px, half-width px, floor px (bottom-up), -
 uniform vec2 uSelect, uGlow, uRes;        // glow: x of the reaching hand, strength
 in float vU, vY, vX0, vSeed, vFlare, vSide, vHalfPx, vQuadPx, vNorm, vCl, vCl2, vSpacePx, vPpu, vXw;
 flat in int vId; flat in float vN, vPhase, vHov, vSel, vFlowT; flat in vec3 vCol;
@@ -195,18 +203,23 @@ void main(){
   c*=vHov>.01?1.:1.-uDim;
   c*=mix(1.-uSelect.y,1.+uSelect.y*1.2,vSel);
   if(uMirror>.5) c*=exp(-y*.3)*(.55+.45*cl2);
-  // Threads leave one by one across a wide hem. At rest uOpen is 0 and this is skipped.
+  // Remnants inside the doorway thin out. The hem keeps a warm glint. Below the
+  // floor line the strand is unchanged, so the water stays a continuous mirror.
   if(uOpen>0.001){
     float t=clamp(uOpen,0.,1.);
-    float band=mix(110.,560.,t)*(uRes.x/1440.);
-    float inner=t*(uRes.x*0.5+band);
-    float dist=abs(gl_FragCoord.x-uRes.x*0.5);
-    float g=clamp((dist-inner)/max(band,1.),0.,1.);
+    float above=smoothstep(uPortal.z-6.,uPortal.z+32.,gl_FragCoord.y);
+    float yN=clamp((gl_FragCoord.y-uPortal.z)/max(uRes.y-uPortal.z,1.),0.,1.);
+    float arch=mix(.62,1.,sin(yN*3.14159265));
+    float halfW=uPortal.y*arch*t;
+    float band=mix(22.,52.,t)*(uRes.x/1440.);
+    float ad=abs(gl_FragCoord.x-uPortal.x);
+    float g=clamp((ad-halfW)/max(band,1.),0.,1.);
     float hsh=h2(vId,19);
-    float fade=smoothstep(hsh*.25,hsh*.25+.72,g);
-    float glint=step(.955,h2(vId+int(vY*3.),int(floor(uTime*2.5))))*fade*(1.-smoothstep(.12,.82,fade));
+    float fade=smoothstep(hsh*.18,hsh*.18+.72,g);
+    fade=mix(1.,fade,above);
+    float glint=step(.962,h2(vId+int(vY*3.),int(floor(uTime*2.5))))*above*(1.-smoothstep(.1,.72,fade))*smoothstep(0.,.15,t);
     c*=fade;
-    c+=vec3(1.,.88,.52)*glint*2.6;
+    c+=vec3(1.,.9,.58)*glint*2.1;
   }
   o=vec4(c,0.);
 }`;
@@ -369,6 +382,7 @@ export const COMPOSITE_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uScene, uBloom, uRefl;
 uniform float uBloomK, uReflK, uFloorV, uTime, uHasRefl, uOpen;
+uniform vec4 uPortal;                     // cx px, half-width px, floor px (bottom-up), -
 uniform vec2 uRes;
 in vec2 vUv; out vec4 o;
 float hash(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
@@ -395,15 +409,19 @@ void main(){
   float cover=1.;
   if(uOpen>0.001){
     float t=clamp(uOpen,0.,1.);
-    float band=mix(110.,560.,t)*(uRes.x/1440.);
-    float inner=t*(uRes.x*0.5+band);
-    float dist=abs(gl_FragCoord.x-uRes.x*0.5);
-    float gg=clamp((dist-inner)/max(band,1.),0.,1.);
-    float h=hash(vec2(floor(gl_FragCoord.x*.35),floor(gl_FragCoord.y*.02)));
-    cover=clamp(smoothstep(-.02,1.02,gg)+(h-.5)*.07*sin(3.14159*clamp(gg,0.,1.)),0.,1.);
-    float spark=step(.993,hash(floor(gl_FragCoord.xy*vec2(.07,.035))+floor(uTime*4.)))*cover*(1.-cover);
-    c+=vec3(1.,.9,.55)*spark*3.2;
-    c*=cover;
+    // Only the rain above the floor opens. The reflective floor keeps its cover.
+    float above=smoothstep(uPortal.z-2.,uPortal.z+26.,gl_FragCoord.y);
+    float yN=clamp((gl_FragCoord.y-uPortal.z)/max(uRes.y-uPortal.z,1.),0.,1.);
+    float arch=mix(.62,1.,sin(yN*3.14159265));
+    float halfW=uPortal.y*arch*t;
+    float band=mix(22.,52.,t)*(uRes.x/1440.);
+    float ad=abs(gl_FragCoord.x-uPortal.x);
+    float gg=clamp((ad-halfW)/max(band,1.),0.,1.);
+    float h=hash(vec2(floor(gl_FragCoord.x*.22),floor(gl_FragCoord.y*.02)));
+    float edge=clamp(smoothstep(-.04,1.04,gg)+(h-.5)*.07*sin(3.14159*clamp(gg,0.,1.)),0.,1.);
+    cover=mix(1.,edge,above);
+    float spark=step(.994,hash(floor(gl_FragCoord.xy*vec2(.06,.03))+floor(uTime*3.)))*(1.-cover)*above;
+    c+=vec3(1.,.92,.6)*spark*2.2;
   }
   o=vec4(max(c,0.)*cover,cover);
 }`;

@@ -34,7 +34,9 @@ a{color:inherit;text-decoration:none}
   opacity:0;transition:opacity 1.6s ease;z-index:2;background:transparent}
 body.ready #stream{opacity:1}
 #stream:active{cursor:grabbing}
-@media (hover:hover) and (pointer:fine){#stream,#stream:active,body.pointer a,body.pointer button{cursor:none}}
+@media (hover:hover) and (pointer:fine){
+  body.pointer #stream,body.pointer #stream:active,body.pointer a,body.pointer button{cursor:none}
+}
 
 #loader{position:fixed;left:0;right:0;bottom:0;height:1px;pointer-events:none;z-index:4;transition:opacity 1.2s ease .4s}
 #loader i{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgb(var(--accent) / .7) 50%,transparent);
@@ -46,18 +48,30 @@ body.loaded #loader{opacity:0}
 #meter i{position:absolute;left:-4px;width:9px;height:1px;background:var(--gold-hi);top:calc((1 - var(--z,0)) * 100%)}
 body.zooming #meter{opacity:1;transition-duration:.2s}
 
-/* ───────────── cursor ───────────── */
+/* ───────────── cursor: 星尘微光点 ───────────── */
+#dust{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:59;opacity:0}
 #cursor,#ring,#tip{position:fixed;left:0;top:0;pointer-events:none;z-index:60;transform:translate3d(-100px,-100px,0);opacity:0;transition:opacity .4s ease}
-@media (hover:hover) and (pointer:fine){body.pointer #cursor,body.pointer #ring{opacity:1}}
-#cursor{width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--gold-hi)}
-#ring::before{content:"";position:absolute;left:-18px;top:-18px;width:36px;height:36px;border-radius:18px;
-  border:1px solid rgb(var(--accent) / .5);
-  transition:transform .55s var(--ease),border-color .4s ease,background-color .4s ease,border-radius .5s var(--ease)}
-body.over-ui #ring::before{transform:scale(1.55);border-color:rgb(var(--accent) / .85);background-color:rgb(var(--accent) / .06)}
-body.over-line #ring::before{transform:scale(.34,1.7);border-radius:4px;border-color:rgb(var(--accent) / .9)}
-body.over-child #ring::before{transform:scale(1.9);border-color:rgb(var(--accent) / .9)}
-body.dragging #ring::before{transform:scale(.7)}
-body.story-open #cursor,body.story-open #ring,body.menu-open #ring{opacity:0!important}
+@media (hover:hover) and (pointer:fine){body.pointer #dust,body.pointer #cursor,body.pointer #ring{opacity:1}}
+#cursor{width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;border:0;
+  background:radial-gradient(circle at 50% 45%,#fff8ec 0%,#F6DFB0 46%,#D8A85B 100%);
+  box-shadow:0 0 5px 1.5px rgb(216 168 91 / .55),0 0 11px 3px rgb(246 223 176 / .2);
+  scale:1;transition:opacity .4s ease,scale .16s cubic-bezier(.22,.8,.24,1)}
+#cursor::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;
+  border:1px solid transparent;opacity:0;pointer-events:none}
+body.cursor-down #cursor{scale:.68}
+body.cursor-down #cursor::after{animation:gleam-pulse .46s cubic-bezier(.16,.72,.2,1)}
+@keyframes gleam-pulse{0%{transform:scale(1);opacity:.8;border-color:rgb(246 223 176 / .85)}100%{transform:scale(3.4);opacity:0;border-color:rgb(216 168 91 / 0)}}
+#ring::before{content:"";position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;
+  border:1px solid transparent;
+  background:radial-gradient(circle,rgb(246 223 176 / .28) 0%,rgb(216 168 91 / .1) 46%,transparent 70%);
+  box-shadow:0 0 10px rgb(216 168 91 / .28);
+  transform:scale(.22);opacity:0;
+  transition:transform .48s cubic-bezier(.22,.78,.18,1),opacity .4s ease,border-color .4s ease}
+body.over-ui #ring::before,body.over-line #ring::before,body.over-child #ring::before{
+  transform:scale(1);opacity:1;border-color:rgb(246 223 176 / .9)}
+body.cursor-down.over-ui #ring::before,body.cursor-down.over-line #ring::before,body.cursor-down.over-child #ring::before{transform:scale(.8)}
+body.dragging #ring::before{transform:scale(.72)}
+body.story-open #dust,body.story-open #cursor,body.story-open #ring,body.menu-open #ring,body.parting #dust{opacity:0!important}
 
 #tip .tip-body{position:absolute;left:30px;top:0;transform:translate(0,-50%);white-space:nowrap;
   display:grid;gap:7px;padding:12px 16px 11px;border:1px solid rgb(var(--accent) / .18);border-radius:2px;
@@ -157,32 +171,23 @@ body.away .hero,body.away .foot{visibility:hidden}
 body.ready .rise{animation:rise 1.5s var(--ease) both;animation-delay:calc(1.1s + var(--i,0) * .12s)}
 @keyframes rise{to{opacity:1;translate:0 0;filter:blur(0)}}
 
-/* The castle document is not mounted here. A gold seam opens onto a still of its meadow.
-   The meadow sits behind the rain; the lips sit in front of it. */
-#rift{position:fixed;inset:0;pointer-events:none}
-.rift-meadow{position:fixed;inset:-6%;z-index:1;opacity:0;background:#d5eef8 url("../castle/assets/world.svg") center 42%/cover no-repeat;
-  transform:scale(.94);transform-origin:50% 42%}
-body.parting .rift-meadow{opacity:1;animation:rift-push 1.04s cubic-bezier(.16,.72,.18,1) forwards}
-@keyframes rift-push{to{transform:scale(1.12)}}
-.rift-bloom{position:fixed;inset:0;z-index:3;opacity:0;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 44%, rgb(255 246 224 / .62), rgb(255 228 180 / .16) 26%, transparent 58%)}
-body.parting .rift-bloom{animation:rift-bloom 1.04s ease forwards}
-@keyframes rift-bloom{0%{opacity:0}45%{opacity:.28}100%{opacity:.72}}
-.rift-lip{position:fixed;top:-4%;bottom:-4%;width:18px;z-index:3;opacity:0;pointer-events:none}
-.rift-lip.l{left:50%;margin-left:-18px;background:linear-gradient(90deg,transparent,rgb(255 226 170 / .18) 58%,rgb(255 248 226 / .96));
-  box-shadow:0 0 14px rgb(226 184 112 / .42)}
-.rift-lip.r{left:50%;background:linear-gradient(270deg,transparent,rgb(255 226 170 / .18) 58%,rgb(255 248 226 / .96));
-  box-shadow:0 0 14px rgb(226 184 112 / .42)}
-body.parting .rift-lip.l{animation:rift-lip-l 1.04s cubic-bezier(.45,.05,.2,1) forwards}
-body.parting .rift-lip.r{animation:rift-lip-r 1.04s cubic-bezier(.45,.05,.2,1) forwards}
-@keyframes rift-lip-l{0%{transform:translateX(0);opacity:1}55%{transform:translateX(-34vw);opacity:1}100%{transform:translateX(-58vw);opacity:0}}
-@keyframes rift-lip-r{0%{transform:translateX(0);opacity:1}55%{transform:translateX(34vw);opacity:1}100%{transform:translateX(58vw);opacity:0}}
-body.parting #stream{animation:rift-cloth 1.04s cubic-bezier(.45,.05,.2,1) forwards}
-@keyframes rift-cloth{
-  0%{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,49.65% 0,49.65% 100%,50.35% 100%,50.35% 0);transform:scale(1)}
-  55%{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,16% 0,16% 100%,84% 100%,84% 0);transform:scale(1.02)}
-  100%{clip-path:polygon(evenodd,0 0,100% 0,100% 100%,0 100%,0 0,-28% 0,-28% 100%,128% 100%,128% 0);transform:scale(1.05)}
-}
+/* The castle meadow sits behind the rain. Only the doorway Duang parts — the column of
+   veil in front of him, above the floor — ever becomes transparent, so this world shows
+   through that opening and nowhere else. */
+#rift{position:fixed;inset:0;pointer-events:none;z-index:1}
+.rift-meadow{position:fixed;inset:-8%;z-index:1;opacity:0;background:#c9e7f6 url("../castle/assets/world.svg") center 46%/cover no-repeat;
+  transform:scale(calc(.98 + var(--glide,0) * .22));transform-origin:var(--door-x,50%) var(--door-b,72%);
+  filter:blur(1.4px);transition:opacity .16s ease}
+body.parting .rift-meadow{opacity:1}
+.rift-bloom{position:fixed;z-index:1;left:calc(var(--door-x,50%) - var(--door-w,0px) / 2);top:0;width:var(--door-w,0px);height:var(--door-b,72%);
+  opacity:calc(var(--open,0) * .95);pointer-events:none;
+  border-radius:46% 46% 38% 38% / 8% 8% 20% 20%;
+  background:radial-gradient(ellipse at 50% 68%,rgb(255 246 220 / .72),rgb(255 214 150 / .22) 46%,transparent 72%);
+  filter:blur(10px)}
+.rift-veil{position:fixed;z-index:1;left:calc(var(--door-x,50%) - var(--door-w,0px) / 2);top:0;width:var(--door-w,0px);height:var(--door-b,72%);
+  opacity:var(--open,0);pointer-events:none;
+  border-radius:48% 48% 40% 40% / 7% 7% 22% 22%;
+  box-shadow:inset 0 0 28px rgb(255 236 200 / .55),0 0 36px rgb(216 168 91 / .28)}
 #castle-frame{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:0;opacity:0;pointer-events:none}
 body.parting .foot,body.parting .top{opacity:0;transition:opacity .28s ease}
 body.parting #cursor,body.parting #ring{opacity:0}

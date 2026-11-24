@@ -34,7 +34,10 @@ const F = 1.6;            // focal length (NDC)
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const QS = new URLSearchParams(location.search);
 const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
-const gate = { active: false, p: 0, frozen: false, open: 0, navigated: false, seeked: false };
+const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
+const HANDS_AT = 3.02;
+const PART_S = 1.48;
+const gate = { active: false, p: 0, frozen: false, open: 0, glide: 0, navigated: false, seeked: false, t0: 0, hold: false, hands: false };
 
 const rng = mulberry(0x2545f491);
 
@@ -341,7 +344,8 @@ function startFilmFile() {
   $video.addEventListener('error', () => {
     // A preview host may redirect the mp4 and label it application/octet-stream.
     // A same-origin blob with an explicit video type still plays, and the poster stays if it cannot.
-    if ($video.dataset.blob) return;
+    // Once a frame is on screen, a seek must not throw that picture away.
+    if ($video.dataset.blob || childOn) return;
     $video.dataset.blob = '1';
     fetch('./assets/duang.mp4').then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(b => {
       $video.src = URL.createObjectURL(new Blob([b], { type: 'video/mp4' }));
@@ -505,15 +509,74 @@ canvas.addEventListener('pointerdown', e => {
   cam.vx = cam.vy = 0;
 });
 const ring = { x: -100, y: -100, tx: -100, ty: -100 };
+const $dust = document.getElementById('dust');
+const dustCtx = $dust?.getContext('2d', { alpha: true });
+const motes = Array.from({ length: 40 }, () => ({ a: 9, life: 0.4, x: 0, y: 0, vx: 0, vy: 0, r: 2 }));
+let moteI = 0;
+const lastMote = { x: -999, y: -999 };
+const moteSprite = document.createElement('canvas');
+moteSprite.width = moteSprite.height = 16;
+{
+  const g = moteSprite.getContext('2d');
+  const rad = g.createRadialGradient(8, 8, 0, 8, 8, 8);
+  rad.addColorStop(0, 'rgba(255,248,232,.95)');
+  rad.addColorStop(0.35, 'rgba(246,223,176,.7)');
+  rad.addColorStop(1, 'rgba(216,168,91,0)');
+  g.fillStyle = rad;
+  g.beginPath();
+  g.arc(8, 8, 8, 0, Math.PI * 2);
+  g.fill();
+}
+function resizeDust() {
+  if (!$dust) return;
+  const w = Math.max(1, Math.round(W * DPR)), h = Math.max(1, Math.round(H * DPR));
+  if ($dust.width !== w || $dust.height !== h) { $dust.width = w; $dust.height = h; }
+}
+function spawnMote(x, y) {
+  if (!FINE || REDUCED || !dustCtx) return;
+  const dx = x - lastMote.x, dy = y - lastMote.y;
+  if (dx * dx + dy * dy < 12 * 12) return;
+  lastMote.x = x; lastMote.y = y;
+  const m = motes[moteI++ % motes.length];
+  const ang = Math.random() * Math.PI * 2;
+  m.x = x; m.y = y;
+  m.vx = Math.cos(ang) * (3 + Math.random() * 8);
+  m.vy = -5 - Math.random() * 12;
+  m.r = 1.5 + Math.random() * 1.5;
+  m.life = 0.36 + Math.random() * 0.12;
+  m.a = 0;
+}
+function drawDust(dt) {
+  if (!dustCtx || !$dust) return;
+  dustCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  dustCtx.clearRect(0, 0, W, H);
+  if (!FINE || REDUCED || !body.classList.contains('pointer') || body.classList.contains('story-open')) return;
+  for (const m of motes) {
+    if (m.a >= m.life) continue;
+    m.a += dt;
+    m.x += m.vx * dt;
+    m.y += m.vy * dt;
+    m.vy += 6 * dt;
+    const k = 1 - m.a / m.life;
+    dustCtx.globalAlpha = Math.min(1, k * 0.95);
+    const s = m.r * 5.2;
+    dustCtx.drawImage(moteSprite, m.x - s / 2, m.y - s / 2, s, s);
+  }
+  dustCtx.globalAlpha = 1;
+}
 addEventListener('pointermove', e => {
-  if (e.pointerType !== 'mouse') return;
+  if (e.pointerType !== 'mouse' || !FINE) return;
   body.classList.add('pointer');
   $cursor.style.transform = `translate3d(${e.clientX}px,${e.clientY}px,0)`;
   body.classList.toggle('over-ui', !!e.target.closest?.('a, button'));
   ring.tx = e.clientX; ring.ty = e.clientY;
   if (ring.x < -50) { ring.x = ring.tx; ring.y = ring.ty; }
+  spawnMote(e.clientX, e.clientY);
   if (view && !view.isOpen) touchWater(e.clientX, e.clientY, false);
 });
+addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && FINE) body.classList.add('cursor-down'); });
+addEventListener('pointerup', () => body.classList.remove('cursor-down'));
+addEventListener('pointercancel', () => body.classList.remove('cursor-down'));
 document.addEventListener('pointerleave', () => body.classList.remove('pointer'));
 canvas.addEventListener('pointermove', e => {
   pointer.x = e.clientX; pointer.y = e.clientY; pointer.inside = true;
@@ -581,6 +644,7 @@ function resize() {
     bloom: Array.from({ length: 6 }, (_, i) => target(PW / 2 ** (i + 1), PH / 2 ** (i + 1))),
   };
   if (stories.length) cam.lsT = clamp(cam.lsT, LS_MIN(), LS_MAX());
+  resizeDust();
 }
 addEventListener('resize', () => { if (RT) resize(); });
 
@@ -705,6 +769,7 @@ function step(dt, now) {
   body.classList.toggle('zooming', now < zoomUntil);
   $meter.style.setProperty('--z', zt.toFixed(4));
   stage(dt, zt);
+  drawDust(dt);
 }
 
 // Everything in the page that lives in the same space as the curtain.
@@ -793,7 +858,11 @@ function drawWorld(rt, mirror) {
   gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 
   const pr = P.fibre, u = pr.u; gl.useProgram(pr.p); bindCommon(pr, rt.h, mirror);
-  gl.uniform1f(u.uOpen, gate.open); gl.uniform2f(u.uRes, rt.w, rt.h);
+  const portal = curtainPortal(rt.w, rt.h);
+  // The reflection keeps the unbroken curtain, so the floor does not split with the veil.
+  gl.uniform1f(u.uOpen, mirror ? 0 : gate.open);
+  gl.uniform4f(u.uPortal, portal.cx, portal.half, portal.floor, 0);
+  gl.uniform2f(u.uRes, rt.w, rt.h);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, T.story.t); gl.uniform1i(u.uStory, 2);
   gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, T.layers.t); gl.uniform1i(u.uLayers, 3);
   gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D_ARRAY, arrTex); gl.uniform1i(u.uArr, 4);
@@ -809,9 +878,10 @@ function drawWorld(rt, mirror) {
   gl.bindVertexArray(vaos.fibre);
   gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, (SEG + 1) * 2, NF);
 
-  // The child stands in the curtain. As it opens he is carried away with the rain;
-  // he is not drawn again on top of the bright scene.
-  if (childOn && show > 0.003) {
+  // While the doorway is open he is drawn after the composite, in front of the hole.
+  // The reflection still carries him, so the water under his feet stays his.
+  const overlayChild = gate.active && !mirror && gate.open > 0.001;
+  if (childOn && show > 0.003 && !overlayChild) {
     const c = P.child, cu = c.u; gl.useProgram(c.p);
     gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
     gl.uniform1f(cu.uMirror, mirror ? 1 : 0); gl.uniform1f(cu.uZ, CHILD.z);
@@ -826,6 +896,8 @@ function drawWorld(rt, mirror) {
 // The film's newest frame, uploaded only when there is one.
 function updateChild() {
   if ($video.readyState < 2 || !$video.videoWidth) return;
+  // Keep the frame already on screen until the hands-up seek actually lands.
+  if (gate.active && gate.hands && !gate.seeked) return;
   uploadChild($video);
 }
 
@@ -884,7 +956,24 @@ function render() {
     gl.uniform1f(u.uTime, time);
     gl.uniform2f(u.uRes, PW, PH);
     gl.uniform1f(u.uOpen, gate.open);
+    const portal = curtainPortal(PW, PH);
+    gl.uniform4f(u.uPortal, portal.cx, portal.half, portal.floor, 0);
   });
+
+  if (gate.active && childOn && show > 0.003 && gate.open > 0.001) {
+    gl.enable(gl.BLEND);
+    gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    const c = P.child, cu = c.u; gl.useProgram(c.p);
+    gl.uniform3f(cu.uCam, cam.x, cam.y, camDist()); gl.uniform1f(cu.uF, F); gl.uniform1f(cu.uAspect, W / H);
+    gl.uniform1f(cu.uMirror, 0); gl.uniform1f(cu.uZ, CHILD.z);
+    gl.uniform4f(cu.uRect, childX(0), -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
+    gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, T.child); gl.uniform1i(cu.uTex, 5);
+    gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
+    const passed = smooth(1.2, PART_S, gate.p || 0);
+    gl.uniform1f(cu.uAlpha, show * (1 - passed)); gl.uniform1f(cu.uH, CHILD.h); gl.uniform1f(cu.uDirect, 1);
+    gl.bindVertexArray(vaos.unit); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.disable(gl.BLEND);
+  }
 }
 
 function frame(now) {
@@ -904,14 +993,50 @@ window.__tick = (n = 1) => {
 };
 
 // ────────────────────────────────────────────────────────────── castle gate
-// CASTLE holds the hands-up moment, then draws the rain apart. Duang fades with the cloth.
-// The castle, including its flying sprite, is already playing behind it.
+// CASTLE parts only the rain in front of Duang, then glides through that doorway.
+// The rain never freezes. Seeking his hands-up frame does not block the cloth.
 
-// The old gate froze the rain (sleeping = true) until the film reached the hands-up
-// frame, then waited until gate.p passed 5.05 before navigating. That was the stall:
-// up to four seconds of a stuck frame, then another five seconds of curtain, and the
-// hidden castle iframe was thrown away on the way out. The seam below is CSS only.
-const RIFT_MS = 1040;
+function curtainPortal(rtW, rtH) {
+  const poseX = childX(childPose.feet);
+  const horizon = project(poseX, 0, 0);
+  if (gate.active) {
+    if (!gate.floorLock) gate.floorLock = horizon.y;
+    horizon.y = Math.min(horizon.y, gate.floorLock);
+  }
+  const head = project(poseX, childY(Math.min(childPose.top, 0.12)), CHILD.z);
+  const feet = project(poseX, 0, CHILD.z);
+  const bodyH = Math.max(64, Math.abs(feet.y - head.y));
+  const half = clamp(Math.max(bodyH * 1.05, W * 0.12), 76, W * 0.19);
+  const sx = (rtW || W) / Math.max(W, 1);
+  const sy = (rtH || H) / Math.max(H, 1);
+  return {
+    cx: horizon.x * sx,
+    half: half * sx,
+    floor: Math.max(0, (H - horizon.y) * sy),
+    css: { x: horizon.x, y: horizon.y, half },
+  };
+}
+function publishPortal() {
+  const portal = curtainPortal(PW, PH);
+  const open = gate.open;
+  const w = portal.css.half * 2 * Math.max(open, 0.02);
+  body.style.setProperty('--door-x', `${portal.css.x.toFixed(1)}px`);
+  body.style.setProperty('--door-b', `${Math.max(0, portal.css.y).toFixed(1)}px`);
+  body.style.setProperty('--door-w', `${w.toFixed(1)}px`);
+  body.style.setProperty('--open', open.toFixed(3));
+  body.style.setProperty('--glide', gate.glide.toFixed(3));
+  window.__portal = {
+    x: portal.css.x,
+    floorY: portal.css.y,
+    width: portal.css.half * 2,
+    openWidth: w,
+    open,
+    glide: gate.glide,
+    vw: W,
+    vh: H,
+  };
+  return portal;
+}
 function prefetchCastle() {
   if (gate.active) return;
   const files = [
@@ -933,25 +1058,68 @@ function prefetchCastle() {
   meadow.decoding = 'async';
   meadow.src = new URL('../castle/assets/world.svg', document.baseURI).href;
 }
+function raiseHands() {
+  // Hold the hands-up frame when it can be found. The rain is never paused for this.
+  if (gate.hands) return;
+  gate.hands = true;
+  try { $video.pause(); } catch (e) { /* not playing yet */ }
+  if (!filmStarted) startFilmFile();
+  const park = () => {
+    if (!gate.active || gate.seeked) return;
+    if (Math.abs(($video.currentTime || 0) - HANDS_AT) > 0.35 || $video.readyState < 2) return;
+    try { $video.pause(); } catch (e) { /* already paused */ }
+    gate.seeked = true;
+    childDirty = true;
+  };
+  const seek = () => {
+    if (!gate.active || $video.readyState < 2) return;
+    $video.addEventListener('seeked', park, { once: true });
+    try { $video.currentTime = HANDS_AT; } catch (e) { /* keep the frame already showing */ }
+  };
+  if ($video.readyState >= 2) seek();
+  else $video.addEventListener('loadeddata', seek, { once: true });
+}
 function beginCastle() {
   if (gate.active) return;
+  const now = performance.now();
   gate.active = true;
-  gate.t0 = performance.now();
+  gate.t0 = now;
+  gate.floorLock = 0;
+  gate.hold = gate.hold || QS.has('hold');
+  gate.open = 0.045;
   body.classList.add('parting');
   if (body.classList.contains('menu-open')) setMenu(false);
   saveMusicTime();
-  $announce.textContent = '一道金色的光隙打开，走进城堡。 A gold seam opens onto the castle.';
-  setTimeout(() => {
-    if (gate.navigated) return;
+  raiseHands();
+  publishPortal();
+  window.__parting = { t0: now, classMs: performance.now() - now, litMs: 0, navMs: 0, totalMs: PART_S * 1000, openAt: {} };
+  $announce.textContent = '端端拨开面前的光帘，走进城堡。 Duang parts the rain in front of him and the castle shows through.';
+}
+function gateTick(dt) {
+  const p = gate.frozen ? gate.p : (performance.now() - gate.t0) / 1000;
+  if (!gate.frozen) gate.p = p;
+  const openT = clamp(p / 1.02, 0, 1);
+  gate.open = 1 - Math.pow(1 - openT, 1.65);
+  gate.glide = smooth(0.78, PART_S, p);
+  gate.p = p;
+  if (gate.glide > 0) {
+    cam.lsT = LS_MIN() + gate.glide * 0.46;
+    tween = null;
+    anchor = null;
+  }
+  publishPortal();
+  if (window.__parting && !window.__parting.litMs && gate.open > 0.08) {
+    window.__parting.litMs = performance.now() - gate.t0;
+  }
+  if (!gate.navigated && p >= PART_S) {
     gate.navigated = true;
+    if (window.__parting) window.__parting.navMs = performance.now() - gate.t0;
     saveMusicTime();
+    if (gate.hold || window.__holdNav) return;
     const u = new URL('../castle/', document.baseURI);
     u.searchParams.set('arrived', '1');
     location.href = u.href;
-  }, REDUCED ? 0 : RIFT_MS);
-}
-function gateTick() {
-  // The rain keeps falling at the edges of the seam. The shader curtain stays closed.
+  }
 }
 
 // ────────────────────────────────────────────────────────────── boot
