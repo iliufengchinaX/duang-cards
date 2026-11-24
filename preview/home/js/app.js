@@ -681,14 +681,14 @@ addEventListener('resize', () => { if (RT) resize(); });
 
 // ────────────────────────────────────────────────────────────── frame
 
-function step(dt, now) {
+function step(dt, now, rawDt) {
   intro += dt; time += dt;
   filmPose = poseAt($video.currentTime || 0);
   // Feet stay on the click. The playing film is shifted so those feet do not travel
   // while the arms move.
   childPose = gate.active && gate.holdPose ? gate.holdPose : filmPose;
   if (gate.active && gate.pulling && $pull.readyState >= 2 && !$pull.paused) pullDirty = true;
-  if (gate.active) gateTick(dt);
+  if (gate.active) gateTick(rawDt == null ? dt : rawDt);
   const lsMin = LS_MIN(), lsMax = LS_MAX();
   if (tween) {
     const t = clamp((now - tween.t0) / tween.ms, 0, 1);
@@ -1048,9 +1048,11 @@ function render() {
 
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const raw = Math.max(0, (now - last) / 1000);
+  last = now;
   if (sleeping || document.hidden) return;
-  step(dt, now);
+  // The rain sim stays on a short step. The doorway hears the real gap, and caps it itself.
+  step(Math.min(0.05, raw), now, raw);
   render();
 }
 window.__tick = (n = 1) => {
@@ -1365,6 +1367,7 @@ function beginCastle() {
   const now = performance.now();
   gate.active = true;
   gate.t0 = now;
+  gate.p = 0;
   gate.floorLock = 0;
   gate.hold = gate.hold || QS.has('hold');
   gate.open = 0.045;
@@ -1391,8 +1394,11 @@ function beginCastle() {
   window.__parting = { t0: now, classMs: performance.now() - now, litMs: 0, navMs: 0, readyMs: gate.castleReady ? 0 : 0, totalMs: PART_S * 1000, live: !!gate.live };
   $announce.textContent = '端端拨开面前的光帘，走进城堡。 Duang parts the rain in front of him and the castle shows through.';
 }
-function gateTick() {
-  const p = gate.frozen ? gate.p : (performance.now() - gate.t0) / 1000;
+function gateTick(rawDt) {
+  // One late frame used to spend the whole glide and the whole opening, so the rain
+  // cut straight to the castle. A step stays under a third of that opening.
+  const step = gate.frozen ? 0 : Math.min(Math.max(rawDt || 0, 0), 0.16);
+  const p = (gate.p || 0) + step;
   if (!gate.frozen) gate.p = p;
   const openT = clamp(p / OPEN_END, 0, 1);
   const timeOpen = 1 - Math.pow(1 - openT, 1.55);
