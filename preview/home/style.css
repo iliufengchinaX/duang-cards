@@ -129,8 +129,16 @@ body.tip #tip .tip-body{opacity:1;translate:0 0;filter:none}
 .hero{left:clamp(24px,17vw,300px);top:50%;width:min(640px,calc(100vw - 48px));transform:translateY(-58%);
   opacity:var(--hero,1);filter:blur(calc((1 - var(--hero,1)) * 8px));translate:0 calc((1 - var(--hero,1)) * -28px)}
 .foot{left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;
-  padding:0 var(--pad) calc(var(--pad) + 6px);padding-bottom:max(calc(var(--pad) + 6px),env(safe-area-inset-bottom));
+  padding:0 var(--pad) calc(var(--pad) + 22px);padding-bottom:max(calc(var(--pad) + 22px),calc(env(safe-area-inset-bottom) + 16px));
   opacity:var(--hero,1);translate:0 calc((1 - var(--hero,1)) * 16px)}
+.icp{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0;padding:0 12px max(3px,env(safe-area-inset-bottom));pointer-events:none;
+  font:400 10px/1.5 var(--sans);letter-spacing:.04em;text-align:center;
+  opacity:calc(.82 * var(--hero,1))}
+.icp a{pointer-events:auto;color:rgb(240 211 156 / .78);text-decoration:none;padding:8px 8px}
+.icp a:hover,.icp a:focus-visible{color:var(--gold-hi)}
+.icp-psb:empty{display:none}
+body.parting .icp{opacity:0;transition:opacity .45s ease}
 body.away .hero,body.away .foot{visibility:hidden}
 
 .cue{display:flex;align-items:center;gap:12px;padding:10px 0;border:0;background:none;cursor:pointer;
@@ -150,7 +158,7 @@ body.ready .rise{animation:rise 1.5s var(--ease) both;animation-delay:calc(1.1s 
 /* The castle sits behind the rain. It stays invisible until the curtain is asked to open. */
 #castle-frame{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:1;opacity:0;pointer-events:none;background:#d5eefc}
 body.parting #castle-frame{opacity:1}
-body.parting .foot{opacity:0;transition:opacity .45s ease}
+body.parting .foot,body.parting .icp{opacity:0;transition:opacity .45s ease}
 body.parting #cursor,body.parting #ring{opacity:0}
 body.no-album .menu-foot{display:none}
 

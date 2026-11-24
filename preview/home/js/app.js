@@ -914,7 +914,7 @@ function curtainOpen(p) {
 function armCastleFrame() {
   const frame = document.getElementById('castle-frame');
   if (!frame || frame.getAttribute('src')) return;
-  frame.src = '../castle/?veil=1';
+  frame.src = new URL('../castle/?veil=1', document.baseURI).href;
 }
 function holdHands() {
   // Play forward to the hands-up moment and hold it. Some browsers report this
@@ -962,7 +962,7 @@ function gateTick(dt) {
   anchor = null;
   if (!gate.frozen && !gate.navigated && gate.p > 5.05) {
     gate.navigated = true;
-    const u = new URL('../castle/', location.href);
+    const u = new URL('../castle/', document.baseURI);
     u.searchParams.set('arrived', '1');
     location.href = u.href;
   }

@@ -87,7 +87,12 @@ a{color:inherit}
 .spot:focus-visible .pennant{outline:2px solid var(--c);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.pennant .cloth{animation:none}.spot .pennant{transition:none}}
 
-.bar{position:absolute;left:0;right:0;bottom:max(16px,env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:44px;pointer-events:none}
+.bar{position:absolute;left:0;right:0;bottom:max(42px,calc(env(safe-area-inset-bottom) + 32px));z-index:6;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:44px;pointer-events:none}
+.icp{position:absolute;left:0;right:0;bottom:max(4px,env(safe-area-inset-bottom));z-index:7;display:flex;justify-content:center;align-items:center;gap:10px;
+  margin:0;padding:0 12px;pointer-events:none;text-align:center;font:400 11px/1.4 var(--sans);letter-spacing:.03em;color:rgb(26 25 23 / .62)}
+.icp a{pointer-events:auto;color:inherit;text-decoration:none;padding:6px 8px}
+.icp a:hover,.icp a:focus-visible{color:var(--ink)}
+.icp-psb:empty{display:none}
 .bar .hint,.bar .turn{pointer-events:auto}
 .hint{font-size:13px;color:var(--muted)}
 .hand{display:inline-block;font-weight:700;color:var(--ink);margin-right:4px}

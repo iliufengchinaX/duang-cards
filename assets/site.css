@@ -305,6 +305,9 @@ h1 {
 }
 
 .foot { margin-top: 88px; padding-bottom: calc(36px + env(safe-area-inset-bottom)); scroll-margin-top: calc(var(--nav-h) + 12px); }
+.beian { margin: 28px 0 0; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; text-align: center; font-size: 12px; color: var(--ink-soft); }
+.beian a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.beian-psb:empty { display: none; }
 .foot h2 { margin: 0 0 12px; font-size: 28px; }
 .foot .lead { max-width: 42em; color: var(--ink-soft); }
 .credit { margin-top: 18px; max-width: 68ch; color: var(--ink-soft); font-size: 13px; line-height: 1.65; }
