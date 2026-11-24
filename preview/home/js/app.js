@@ -26,6 +26,18 @@ const body = document.body;
 const $ = s => document.querySelector(s);
 const $loader = $('#loader i'), $meter = $('#meter'), $cursor = $('#cursor'), $ring = $('#ring'), $announce = $('#announce');
 const $child = $('#child'), $video = $('#child-video'), $music = $('#music'), $musicBtn = $('#music-btn'), $tip = $('#tip'), $tipTitle = $('#tip b'), $tipMeta = $('#tip span'), $pause = $('#pause');
+const $pull = document.createElement('video');
+$pull.muted = true;
+$pull.defaultMuted = true;
+$pull.volume = 0;
+$pull.playsInline = true;
+$pull.preload = 'auto';
+$pull.setAttribute('muted', '');
+$pull.setAttribute('playsinline', '');
+$pull.crossOrigin = 'anonymous';
+$pull.src = new URL('./assets/duang-pull.mp4', document.baseURI).href;
+$pull.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+document.body.appendChild($pull);
 
 const SEG = 64;           // segments per fibre
 const CH = 15;            // height of the bar the curtain hangs from
@@ -37,11 +49,11 @@ const SHOTS = { hands: 0.4, third: 2.15, two: 3.08, open: 4.9 };
 const FINE = matchMedia('(hover:hover) and (pointer:fine)').matches;
 const HANDS_AT = 3.02;
 const BLEND_S = 0.18;
-const GESTURE_IN = 2.95;
-const GESTURE_OUT = 4.0;
-// Measured hand span in the film (upper-frame width). The local gap follows this,
-// and it only reaches a full opening when the hands actually spread.
-const HAND_SPAN = [[2.95, 0.22], [3.12, 0.34], [3.25, 0.58], [3.38, 1], [3.50, 1], [4.0, 1]];
+const GESTURE_IN = 0;
+const PULL_DONE = 2.15;
+// Hand span measured on the silent pull clip, mapped onto the local gap.
+const HAND_SPAN = [[0, 0.08], [0.5, 0.22], [1.0, 0.42], [1.5, 0.66], [2.0, 0.9], [2.15, 1], [6.2, 1]];
+const PULL_W = 736, PULL_H = 400, PULL_FEET_U = 0.495, PULL_FEET_V = 0.99, PULL_HEAD_V = 0.022;
 const PART_S = 3.05;
 const OPEN_END = 1.05;
 const GLIDE_END = 2.15;
@@ -143,7 +155,7 @@ function pcg(v) {
 const dropData = new Float32Array(DROPS * 4);
 const h2 = (a, b) => pcg((Math.imul(a >>> 0, 1664525) ^ pcg((b + 1013904223) >>> 0)) >>> 0) / 4294967295;
 const feet = { a: 99, b: 99, last: 0, anchor: 0.496, r0: { x: CHILD.x, z: CHILD.z }, r1: { x: CHILD.x + 0.16, z: CHILD.z } };
-let show = 0, childOn = false, stillAt = -1, childW = 1280, childH = 720, childDirty = false;
+let show = 0, childOn = false, stillAt = -1, childW = 1280, childH = 720, childDirty = false, pullDirty = false;
 let handLine = -1, glow = 0, nextReach = 3.5, heroShown = -1;
 let tween = null;
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -379,18 +391,22 @@ function placeStill() {
   if (!poster.naturalWidth || !T.child || childOn) return;
   uploadChild(poster);
 }
-function uploadChild(source) {
+function uploadTo(tex, source, trackSize) {
   try {
-    gl.bindTexture(gl.TEXTURE_2D, T.child);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
   } catch (e) {
     console.warn(e);
-    return;
+    return false;
   }
-  childW = source.videoWidth || source.naturalWidth || 1280;
-  childH = source.videoHeight || source.naturalHeight || 720;
-  if (!childOn) { childOn = true; stillAt = intro; }
+  if (trackSize) {
+    childW = source.videoWidth || source.naturalWidth || 1280;
+    childH = source.videoHeight || source.naturalHeight || 720;
+    if (!childOn) { childOn = true; stillAt = intro; }
+  }
+  return true;
 }
+function uploadChild(source) { uploadTo(T.child, source, true); }
 function ensureMusic() {
   if ($music.getAttribute('src')) return;
   $music.preload = 'auto';
@@ -671,7 +687,7 @@ function step(dt, now) {
   // Feet stay on the click. The playing film is shifted so those feet do not travel
   // while the arms move.
   childPose = gate.active && gate.holdPose ? gate.holdPose : filmPose;
-  if (gate.active && gate.seeked && $video && !$video.paused) childDirty = true;
+  if (gate.active && gate.pulling && $pull.readyState >= 2 && !$pull.paused) pullDirty = true;
   if (gate.active) gateTick(dt);
   const lsMin = LS_MIN(), lsMax = LS_MAX();
   if (tween) {
@@ -910,13 +926,17 @@ function drawWorld(rt, mirror) {
 // One filmed body. The hands-up frame was shot on the center line, so its quad is
 // shifted until those feet sit on the feet he had when Castle was clicked.
 // The previous frame fades out on the same feet, so he never travels and never doubles.
-function childDrawShift() {
-  if (!gate.seeked || !gate.holdPose) return 0;
-  return (gate.holdPose.feet - filmPose.feet) * CHILD.frameW;
+function pullFrame() {
+  const idleBody = (CHILD.feetV - 0.036) * CHILD.frameH;
+  const gh = idleBody / (PULL_FEET_V - PULL_HEAD_V);
+  const gw = gh * (PULL_W / PULL_H);
+  const anchorX = childX(gate.holdPose ? gate.holdPose.feet : childPose.feet);
+  return [anchorX - PULL_FEET_U * gw, -(1 - PULL_FEET_V) * gh, gw, gh];
 }
-function drawOneChild(tex, shift, alpha, mirror) {
+function drawOneChild(tex, shift, alpha, mirror, cut = 0.08, rect = null) {
   if (!tex || alpha < 0.004) return;
   const direct = !mirror && gate.active && gate.open > 0.001;
+  const box = rect || [childX(0) + shift, -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH];
   const c = P.child, cu = c.u;
   gl.useProgram(c.p);
   gl.uniform3f(cu.uCam, cam.x, cam.y, camDist());
@@ -924,27 +944,27 @@ function drawOneChild(tex, shift, alpha, mirror) {
   gl.uniform1f(cu.uAspect, W / H);
   gl.uniform1f(cu.uMirror, mirror ? 1 : 0);
   gl.uniform1f(cu.uZ, CHILD.z);
-  gl.uniform4f(cu.uRect, childX(0) + shift, -(1 - CHILD.feetV) * CHILD.frameH, CHILD.frameW, CHILD.frameH);
+  gl.uniform4f(cu.uRect, box[0], box[1], box[2], box[3]);
   gl.activeTexture(gl.TEXTURE5);
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.uniform1i(cu.uTex, 5);
-  gl.uniform2f(cu.uTexel, 1 / childW, 1 / childH);
+  gl.uniform2f(cu.uTexel, rect ? 1 / PULL_W : 1 / childW, rect ? 1 / PULL_H : 1 / childH);
   gl.uniform1f(cu.uAlpha, alpha);
   gl.uniform1f(cu.uH, CHILD.h);
   gl.uniform1f(cu.uDirect, direct ? 1 : 0);
+  gl.uniform1f(cu.uCut, cut);
   gl.bindVertexArray(vaos.unit);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 function drawChildLayers(mirror, alpha) {
-  const shift = childDrawShift();
-  const blend = gate.seeked ? (gate.blend || 0) : 0;
+  const blend = gate.pulling && gate.seeked ? (gate.blend || 0) : 0;
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-  if (gate.snapped && gate.seeked && blend < 1) {
-    drawOneChild(T.childPrev, 0, alpha * (1 - blend), mirror);
-    drawOneChild(T.child, shift, alpha * blend, mirror);
+  if (gate.pulling && gate.seeked && T.pullReady) {
+    if (gate.snapped && blend < 1) drawOneChild(T.childPrev, 0, alpha * (1 - blend), mirror);
+    drawOneChild(T.pull, 0, alpha * (blend < 1 && gate.snapped ? blend : 1), mirror, 0.2, pullFrame());
   } else {
-    drawOneChild(T.child, gate.seeked ? shift : 0, alpha, mirror);
+    drawOneChild(gate.snapped && gate.hands ? T.childPrev : T.child, 0, alpha, mirror);
   }
   if (!mirror) gl.disable(gl.BLEND);
 }
@@ -967,6 +987,11 @@ function post(prog, dst, setup) {
 
 function render() {
   const zt = zoomT();
+  if (pullDirty && $pull.readyState >= 2 && $pull.videoWidth) {
+    if (!T.pull) { T.pull = gl.createTexture(); prepTex(T.pull); }
+    if (uploadTo(T.pull, $pull, false)) T.pullReady = true;
+    pullDirty = false;
+  }
   if (childDirty) { updateChild(); childDirty = false; }
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, T.fibS.t);
   gl.activeTexture(gl.TEXTURE1); updateTexture(T.fibD);
@@ -1056,7 +1081,11 @@ function curtainPortal(rtW, rtH) {
   // The arch is narrowest at the floor and the top (0.62 of the middle). Grow from
   // his feet until that narrow edge still reaches both sides of the screen.
   const cover = Math.max(horizon.x, W - horizon.x) / 0.62 + 32;
-  const half = baseHalf + (Math.max(cover, baseHalf) - baseHalf) * expand;
+  const handK = clamp(gate.handOpen || 0, 0, 1);
+  const reach = pullFrame()[2] * (0.094 + 0.16 * handK);
+  const handPx = Math.abs(project(poseX + reach, 0, CHILD.z).x - horizon.x);
+  const grown = Math.max(baseHalf, handPx);
+  const half = grown + (Math.max(cover, grown) - grown) * expand;
   const sx = (rtW || W) / Math.max(W, 1);
   const sy = (rtH || H) / Math.max(H, 1);
   return {
@@ -1117,7 +1146,7 @@ function prefetchCastle() {
   meadow.src = new URL('../castle/assets/world.svg', document.baseURI).href;
 }
 function handOpenAt(t) {
-  if (t < GESTURE_IN || t > GESTURE_OUT + 0.08) return 0;
+  if (t < 0) return 0;
   let a = HAND_SPAN[0], b = HAND_SPAN[HAND_SPAN.length - 1];
   for (let i = 1; i < HAND_SPAN.length; i++) {
     if (t < HAND_SPAN[i][0]) { b = HAND_SPAN[i]; break; }
@@ -1127,51 +1156,27 @@ function handOpenAt(t) {
   return a[1] + (b[1] - a[1]) * k;
 }
 function playGesture() {
-  // Play the filmed reach, not a held frame. Rain is never paused for the seek.
+  // Play the silent two-hand pull. The idle film stays on the frame he had at the click.
   if (gate.hands) return;
   gate.hands = true;
-  if (!filmStarted) startFilmFile();
-  const nowT = $video.currentTime || 0;
-  const already = nowT >= GESTURE_IN && nowT < 3.2;
+  gate.pulling = true;
+  try { $video.pause(); } catch (e) { /* hold the pose we just snapped */ }
   const startPlay = () => {
-    if (!gate.active) return;
+    if (!gate.active || gate.seeked) return;
     gate.seeked = true;
     gate.playedGesture = true;
-    childDirty = true;
-    $video.playbackRate = 1;
-    $video.play().catch(() => {});
+    gate.blendT0 = performance.now();
+    $pull.muted = true;
+    $pull.volume = 0;
+    try { $pull.currentTime = 0; } catch (e) { /* start at the first frame */ }
+    $pull.play().catch(() => {});
+    pullDirty = true;
   };
-  if (already) {
-    gate.blend = 1;
-    startPlay();
-    return;
+  if ($pull.readyState >= 2) startPlay();
+  else {
+    $pull.addEventListener('loadeddata', startPlay, { once: true });
+    $pull.load();
   }
-  const token = (gate.seekToken = (gate.seekToken || 0) + 1);
-  const attempt = (tries) => {
-    if (!gate.active || gate.seeked || gate.seekToken !== token) return;
-    if ($video.readyState < 2) {
-      if (tries < 8) $video.addEventListener('loadeddata', () => attempt(tries + 1), { once: true });
-      return;
-    }
-    const onSeek = () => {
-      if (!gate.active || gate.seekToken !== token || gate.seeked) return;
-      if (Math.abs(($video.currentTime || 0) - GESTURE_IN) > 0.5) return;
-      $video.removeEventListener('seeked', onSeek);
-      gate.blendT0 = performance.now();
-      startPlay();
-    };
-    $video.addEventListener('seeked', onSeek);
-    try { $video.currentTime = GESTURE_IN; } catch (e) { /* retry */ }
-    setTimeout(() => {
-      if (!gate.active || gate.seeked || gate.seekToken !== token) return;
-      if (Math.abs(($video.currentTime || 0) - GESTURE_IN) < 0.5) {
-        $video.removeEventListener('seeked', onSeek);
-        gate.blendT0 = performance.now();
-        startPlay();
-      } else if (tries < 4) attempt(tries + 1);
-    }, 280);
-  };
-  attempt(0);
 }
 function prepTex(tex) {
   gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -1211,6 +1216,15 @@ function holdChildPin() {
 }
 function liveCastleOk() {
   return innerWidth >= 800 && matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+function warmCastle() {
+  if (!liveCastleOk() || gate.active) return;
+  const frame = castleFrame();
+  if (!frame || frame.getAttribute('src')) return;
+  const u = new URL('../castle/', document.baseURI);
+  u.searchParams.set('arrived', '1');
+  u.searchParams.set('veil', '1');
+  frame.src = u.href;
 }
 function castleFrame() {
   return document.getElementById('castle-frame');
@@ -1297,6 +1311,8 @@ function hideCastleView() {
   gate.blend = 0;
   gate.holdPose = null;
   gate.pin = null;
+  gate.pulling = false;
+  try { $pull.pause(); $pull.currentTime = 0; } catch (e) { /* clip can restart next time */ }
   anchor = null;
   canvas.style.opacity = '';
   const back = gate.holdTime;
@@ -1380,11 +1396,13 @@ function gateTick() {
   if (!gate.frozen) gate.p = p;
   const openT = clamp(p / OPEN_END, 0, 1);
   const timeOpen = 1 - Math.pow(1 - openT, 1.55);
-  const vt = $video.currentTime || 0;
-  if (gate.seeked && gate.playedGesture) gate.handOpen = Math.max(gate.handOpen || 0, handOpenAt(vt));
-  // The local gap follows the filmed hands. The wider timed opening only takes over
-  // once that spread has happened, so a late first frame cannot skip the gesture.
-  const handsMoved = !!(gate.playedGesture && vt >= 3.38 && vt < 5);
+  const vt = gate.pulling ? ($pull.currentTime || 0) : 0;
+  if (gate.pulling && $pull.readyState >= 2 && !$pull.paused) {
+    gate.playedGesture = true;
+    gate.seeked = true;
+    gate.handOpen = Math.max(gate.handOpen || 0, handOpenAt(vt));
+  }
+  const handsMoved = !!(gate.playedGesture && vt >= PULL_DONE);
   gate.open = handsMoved ? Math.max(gate.handOpen || 0, timeOpen) : Math.max(0.04, gate.handOpen || 0);
   if (!gate.gestureP && (handsMoved || p >= MAX_P)) gate.gestureP = p;
   const gp = gate.gestureP == null ? 0 : Math.max(0, p - gate.gestureP);
@@ -1405,9 +1423,9 @@ function gateTick() {
   }
   publishPortal();
   window.__gesture = {
-    vt: Math.round(($video.currentTime || 0) * 1000) / 1000,
+    vt: Math.round(($pull.currentTime || 0) * 1000) / 1000,
     open: Math.round((gate.open || 0) * 1000) / 1000,
-    paused: !!$video.paused,
+    paused: !!$pull.paused,
     filmFeet: Math.round((filmPose.feet || 0) * 1000) / 1000,
     filmHand: Math.round((filmPose.hand || 0) * 1000) / 1000,
   };
@@ -1490,7 +1508,7 @@ async function boot() {
   window.__gate = gate;
   if (QS.has('play') || SHOTS[QS.get('shot')] != null) beginCastle();
   else {
-    const warm = () => prefetchCastle();
+    const warm = () => { prefetchCastle(); warmCastle(); };
     if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 2000 });
     else setTimeout(warm, 1400);
   }
