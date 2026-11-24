@@ -1,167 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#e4edf7">
-<title>Hello Duang</title>
-<link rel="stylesheet" href="assets/site.css">
+  <meta charset="utf-8">
+  <base href="preview/home/">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0805">
+  <meta name="description" content="Hello Duang. A curtain of golden light; every thread is a few days of our family.">
+  <title>Hello Duang</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0805'/%3E%3Cpath d='M9 6v19M13 6v21M16 6v22M19 6v21M23 6v19' stroke='%23d9b27a' stroke-width='1.2' stroke-linecap='round' stroke-dasharray='2 3'/%3E%3C/svg%3E">
+  <link rel="preload" href="./assets/duang-poster.jpg" as="image" fetchpriority="high">
+  <link rel="preload" href="./fonts/cormorant-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/jost-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div class="aurora" aria-hidden="true"><span class="sun"></span><span class="sky"></span><span class="pool"></span></div>
-<a class="skip" href="#english">跳到课程</a>
-<header class="topbar">
-  <div class="bar">
-    <a class="brand" href="#top">Hello Duang</a>
-    <nav class="menu" aria-label="目录">
-      <a href="#english">English</a>
-      <a href="#chinese">语文</a>
-      <a href="eng/wordbank_az.html">Word Bank</a>
-      <a href="#about">关于</a>
+  <canvas id="stream" tabindex="0" aria-label="一帘金色的光，每一缕都是一段日子。左右方向键在光缕间移动，回车展开；滚动或双指缩放走近。A curtain of light; every thread is a story. Arrow keys move between threads, Enter opens one, scroll or pinch to walk closer."></canvas>
+  <p id="error" role="alert" hidden></p>
+  <div id="loader" aria-hidden="true"><i></i></div>
+  <div id="meter" aria-hidden="true"><i></i></div>
+  <p id="announce" class="sr-only" aria-live="polite"></p>
+
+  <video id="child-video" crossorigin="anonymous" muted loop playsinline webkit-playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+  <audio id="music" loop preload="none"></audio>
+  <button id="child" type="button" aria-label="端端的百日 · Open Duang's first hundred days"></button>
+
+  <header class="top">
+    <a id="wordmark" class="wordmark rise" href="../../" style="--i:0">
+      <span class="wm-en">Hello Duang</span>
+    </a>
+    <nav class="nav rise" style="--i:1" aria-label="站点 · Site">
+      <a id="home-link" href="../../" aria-current="page"><span class="roll"><span>Home</span><span aria-hidden="true">首页</span></span></a>
+      <a href="../castle/" data-castle><span class="roll"><span>Castle</span><span aria-hidden="true">城堡</span></span></a>
     </nav>
-  </div>
-</header>
-<main class="wrap page" id="top">
-  <header class="hero">
-    <div class="hero-top">
-      <div class="hero-copy">
-        <h1>点开就能<span class="accent">听</span>。</h1>
-        <p class="lede">英语单词、英文故事、语文拼音，收在一起。点一张，打开就能跟读。</p>
-      </div>
-      <a class="btn" href="eng/wordbank_az.html">开始学习
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
+    <div class="actions rise" style="--i:2">
+      <button id="music-btn" class="icon" type="button" aria-pressed="false" aria-label="关掉音乐 · Mute the music">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.2 17.2V6.4l8.2-1.8v10.6"/>
+          <circle cx="6.6" cy="17.2" r="2.35"/>
+          <path class="slash" d="M5 5.5 19 18.5"/>
+        </svg>
+      </button>
+      <button id="pause" class="icon" type="button" aria-pressed="false" aria-label="让光停一停 · Pause the light">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z"/></svg>
+      </button>
+      <button id="menu-btn" class="icon" type="button" aria-expanded="false" aria-controls="menu" aria-label="菜单 · Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h16M4 16h16"/></svg>
+      </button>
     </div>
-    <section class="resume glass reveal" aria-labelledby="resume-title">
-      <div class="resume-copy">
-        <h2 id="resume-title">继续学习</h2>
-        <p class="resume-detail" data-resume-detail>还没听过。103 个单词，从字母 A 开始。</p>
-        <div class="meter" data-meter role="progressbar" aria-valuemin="0" aria-valuemax="103" aria-valuenow="0" aria-label="已听进度"><span></span></div>
-        <p class="resume-stat"><span data-progress data-total="103">已听 0 / 103</span></p>
-        <a class="go" data-resume href="eng/wordbank_az.html#LA">
-          <span data-resume-label>从 A 开始</span>
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      </div>
-      <article class="word compact inset" data-word="seal" data-letter="S" data-n="eng/wordbank_az_audio/seal_n.mp3" data-s="eng/wordbank_az_audio/seal_s.mp3">
-        <button class="art has-img" type="button" data-rate="n" aria-label="播放 seal，正常语速">
-          <img src="eng/wordbank_az_img/seal.png" alt="" width="320" height="320">
-        </button>
-        <div class="copy">
-          <h3><span class="cap">s</span>eal</h3>
-          <p class="ipa">/sil/</p>
-          <p class="zh"><span class="zh-text">海豹</span></p>
-          <p class="oops">再点一次</p>
-        </div>
-        <div class="plays">
-          <button class="play play-n" type="button" data-rate="n" aria-label="正常语速播放 seal">
-            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M2.2 1.2v9.6L10.6 6z" fill="currentColor"/></svg>
-            <span class="bars" hidden><i></i><i></i><i></i></span>
-            <span>正常</span>
-          </button>
-          <button class="play play-s" type="button" data-rate="s" aria-label="慢速播放 seal">
-            <span class="bars" hidden><i></i><i></i><i></i></span>
-            <span>慢速</span>
-          </button>
-        </div>
-      </article>
-    </section>
   </header>
 
-  <div class="subjects glass reveal">
-    <a href="#english">
-      <span><strong>English</strong><small>单词、故事、总复习</small></span>
-      <em data-eng-count>7 课</em>
-    </a>
-    <a href="#chinese">
-      <span><strong>语文</strong><small>拼音点读</small></span>
-      <em data-cn-count>4 课</em>
-    </a>
-  </div>
-
-  <section class="block" id="english">
-    <h2 class="sec-h">English</h2>
-    <div class="lessons" id="eng-grid"></div>
-  </section>
-  <section class="block" id="chinese">
-    <h2 class="sec-h">语文</h2>
-    <div class="lessons" id="cn-grid"></div>
-  </section>
-
-  <footer class="foot" id="about">
-    <h2>关于</h2>
-    <p class="lead">Duang · 点读卡目录。打开一课，点一下就能听。听过哪些单词，只记在这台设备上。</p>
-    <div class="credit">
-      <p>拼音音频来自密歇根州立大学 Tone Perfect 普通话声调数据库（Catherine Ryu 及其团队、MSU 图书馆）。</p>
-      <p>Catherine Ryu, Mandarin Tone Perception &amp; Production Team, and Michigan State University Libraries. Tone Perfect: Multimodal Database for Mandarin Chinese. <a href="https://tone.lib.msu.edu/" target="_blank" rel="noopener">https://tone.lib.msu.edu/</a></p>
+  <footer class="foot">
+    <div class="foot-left">
+      <button id="scroll-cue" class="cue rise" type="button" style="--i:3">
+        <span>Scroll to explore · 滚动探索</span><i aria-hidden="true"></i>
+      </button>
+    </div>
+    <p class="icp">
+      <a class="icp-miit" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">鄂ICP备2026069503号-1</a>
+      <span class="icp-psb"><!-- 公安联网备案 --></span>
+    </p>
+    <div class="foot-right rise" style="--i:4">
+      <p id="count"></p>
     </div>
   </footer>
-</main>
-<p class="sr" id="live" aria-live="polite"></p>
-<script>
-/* 新增卡片：在 CARDS 里加一行。
-   subject: 'eng' | 'cn'
-   kind: 单词 | 故事 | 拼音
-   date: YYYY.MM.DD（英语按新→旧；语文用 order 课序）
-*/
-var CARDS = [
-  { subject: 'eng', kind: '故事', letters: 'Sail', title: '故事点读 · Sailing Away', preview: 'grow · got · far · long · today · only · keep', count: '7 句', date: '2026.11.20', href: 'eng/sailing_away.html', cover: '#E4D8F0', coverInk: '#3A2654' },
-  { subject: 'eng', kind: '单词', letters: 'Y Z', title: 'Y / Z 单词点读', preview: 'yacht · yogurt · yo-yo · zipper', count: '8 个单词', date: '2026.11.06', href: 'eng/yz.html' },
-  { subject: 'eng', kind: '故事', letters: 'Hurt', title: '故事点读 · If I Get Hurt', preview: 'laugh · hurt · fall · never · better', count: '10 句', date: '2026.11.06', href: 'eng/story_hurt.html' },
-  { subject: 'eng', kind: '单词', letters: 'A–Z', title: 'Word Bank A–Z 总复习点读', preview: '103 个单词 · 下周拼写检查', count: '103 个单词', date: '2026.11.13', href: 'eng/wordbank_az.html', feature: true },
-  { subject: 'eng', kind: '故事', letters: 'Chase 1', title: '故事点读 · Chase Loves to Play 1', preview: '长音 a · gray · bay · sail · mail', count: '4 句', date: '2026.11.06', href: 'eng/story_chase1.html' },
-  { subject: 'eng', kind: '故事', letters: 'Chase 2', title: '故事点读 · Chase Loves to Play 2', preview: '长音 a · sleigh · neigh · day · play', count: '4 句', date: '2026.11.06', href: 'eng/story_chase2.html' },
-  { subject: 'eng', kind: '单词', letters: 'V W X', title: 'V / W / X 单词点读', preview: 'box · fox · vet · water · wax', count: '12 个单词', date: '2026.10.30', href: 'eng/vwx.html' },
-  { subject: 'eng', kind: '单词', letters: 'S T U', title: 'S / T / U 单词点读', preview: 'soap · sun · turtle · umbrella', count: '12 个单词', date: '2026.10.23', href: 'eng/stu.html' },
-  { subject: 'cn', kind: '拼音', letters: 'a o e', title: '拼音第 1 课 · 单韵母 a o e i u ü', preview: 'a · o · e · i · u · ü', count: '40 项', date: '2026.11.06', href: 'cn/py01.html', order: 1 },
-  { subject: 'cn', kind: '拼音', letters: 'd t n l', title: '拼音点读卡 · d t n l', preview: '男声 / 女声可切换', count: '26 项', date: '2026.11.06', href: 'cn/dtnl.html', order: 2 },
-  { subject: 'cn', kind: '拼音', letters: 'j q x', title: 'j q x 作业点读卡', preview: '拼音练习', count: '39 项', date: '2026.11.06', href: 'cn/jqx.html', order: 3 },
-  { subject: 'cn', kind: '拼音', letters: 'z c s', title: 'z c s 作业点读卡', preview: '拼音练习', count: '34 项', date: '2026.11.13', href: 'cn/zcs.html', order: 4 }
-];
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, function (c) {
-    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
-  });
-}
-function sortEng(a, b) { return b.date.localeCompare(a.date); }
-function sortCn(a, b) {
-  var ao = a.order || 999, bo = b.order || 999;
-  if (ao !== bo) return ao - bo;
-  return b.date.localeCompare(a.date);
-}
-function lesson(c) {
-  var feature = c.feature ? ' feature' : '';
-  var long = c.letters.length >= 6 ? ' long' : '';
-  var thumbs = c.feature
-    ? '<span class="thumbs" aria-hidden="true">' +
-      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/panda.png">' +
-      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/seal.png">' +
-      '<img alt="" width="320" height="320" src="eng/wordbank_az_img/sun.png">' +
-      '</span>'
-    : '';
-  return '<a class="lesson glass reveal' + feature + '" href="' + esc(c.href) + '">' +
-    '<p class="mark' + long + '" aria-hidden="true">' + esc(c.letters) + '</p>' +
-    '<span class="lesson-copy">' +
-      '<span class="lesson-meta"><span class="tag">' + esc(c.kind) + '</span><span>' + esc(c.count) + '</span>' +
-      '<time datetime="' + esc(c.date.replace(/\./g, '-')) + '">' + esc(c.date) + '</time></span>' +
-      '<span class="lesson-title">' + esc(c.title) + '</span>' +
-      '<span class="preview">' + esc(c.preview) + '</span>' +
-    '</span>' + thumbs + '</a>';
-}
-function render() {
-  var eng = CARDS.filter(function (c) { return c.subject === 'eng'; }).sort(sortEng);
-  var cn = CARDS.filter(function (c) { return c.subject === 'cn'; }).sort(sortCn);
-  document.getElementById('eng-grid').innerHTML = eng.map(lesson).join('');
-  document.getElementById('cn-grid').innerHTML = cn.map(lesson).join('');
-  var engCount = document.querySelector('[data-eng-count]');
-  var cnCount = document.querySelector('[data-cn-count]');
-  if (engCount) engCount.textContent = eng.length + ' 课';
-  if (cnCount) cnCount.textContent = cn.length + ' 课';
-}
-render();
-</script>
-<script src="assets/play.js"></script>
+  <canvas id="dust" aria-hidden="true"></canvas>
+  <div id="cursor" aria-hidden="true"></div>
+  <div id="ring" aria-hidden="true"></div>
+  <div id="tip" aria-hidden="true"><div class="tip-body"><b></b><span></span></div></div>
+
+  <div id="menu" role="dialog" aria-modal="true" aria-label="菜单 · Menu">
+    <button class="menu-close icon" type="button" aria-label="关闭 · Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <ol class="menu-list">
+      <li style="--i:0"><a href="../../" class="menu-home"><span class="n">01</span><span class="en">Home</span><span class="zh">首页</span></a></li>
+      <li style="--i:1"><a href="../castle/" data-castle><span class="n">02</span><span class="en">Castle</span><span class="zh">城堡</span></a></li>
+    </ol>
+    <p class="menu-foot">滚动走近光帘，点一缕光展开它的照片 · Scroll into the curtain, touch a thread to open its photographs.</p>
+  </div>
+
+  <section id="story" role="dialog" aria-modal="true" aria-labelledby="story-title" hidden>
+    <div class="story-backdrop" aria-hidden="true"></div>
+    <button class="story-side prev" type="button" aria-label="上一缕 · Previous thread"></button>
+    <button class="story-side next" type="button" aria-label="下一缕 · Next thread"></button>
+    <div class="story-thread" aria-hidden="true"></div>
+    <div class="story-flow"><div class="strip"></div></div>
+    <button class="story-back" type="button" aria-label="回到光帘 · Back to the curtain">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></svg>
+    </button>
+    <p class="story-title" id="story-title"></p>
+    <div class="lightbox" hidden>
+      <p class="lb-cap"></p>
+    </div>
+  </section>
+
+  <div id="rift" aria-hidden="true">
+    <img id="castle-still" alt="" decoding="async">
+    <div class="rift-meadow"></div>
+    <div class="rift-bloom"></div>
+    <div class="rift-veil"></div>
+  </div>
+  <iframe id="castle-frame" title="" aria-hidden="true" tabindex="-1"></iframe>
+
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
