@@ -1,4 +1,4 @@
-import { NF, MAX_CHAPTERS } from './stories.js';
+import { NF, MAX_CHAPTERS } from './stories.js?v=70a1901';
 
 // Shared by the browser and the offline catalog check. No DOM or WebGL dependencies.
 export function validateCatalog(catalog, data) {

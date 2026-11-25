@@ -1,4 +1,4 @@
-import { LAYER } from './photos.js';
+import { LAYER } from './photos.js?v=70a1901';
 export const IDLE = 3;
 export const TOUCHES = 8;
 export const DROPS = 64;
