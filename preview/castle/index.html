@@ -112,16 +112,25 @@
 <script>
 (function () {
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function leave(href) {
-    document.body.classList.add('leaving');
-    setTimeout(function () { location.href = href; }, reduce ? 0 : 480);
+  var embedded = window.parent !== window;
+  function isSelf(a) {
+    try {
+      var u = new URL(a.getAttribute('href'), location.href);
+      return u.pathname.replace(/\/$/, '') === location.pathname.replace(/\/$/, '') && a.hasAttribute('aria-current');
+    } catch (err) { return false; }
   }
   document.addEventListener('click', function (e) {
-    var a = e.target.closest('a[data-home]');
+    var a = e.target.closest('a');
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+    if (isSelf(a)) { e.preventDefault(); return; }
+    if (!a.hasAttribute('data-home')) return;
     e.preventDefault();
-    leave(a.getAttribute('href'));
-  });
+    if (embedded) parent.postMessage({ type: 'hd-home' }, location.origin);
+    else {
+      document.body.classList.add('leaving');
+      setTimeout(function () { location.href = a.getAttribute('href'); }, reduce ? 0 : 480);
+    }
+  }, true);
   var btn = document.getElementById('menu-btn'), menu = document.getElementById('menu');
   function setMenu(open) {
     btn.setAttribute('aria-expanded', String(open));
@@ -145,14 +154,31 @@
     pause.setAttribute('aria-label', on ? '让画面继续 · Resume the scene' : '让画面停一停 · Pause the scene');
   });
   var musicBtn = document.getElementById('music-btn');
+  var musicOn = true;
+  try { musicOn = localStorage.getItem('hd-music') !== '0'; } catch (e) {}
+  function paint() {
+    musicBtn.setAttribute('aria-pressed', String(!musicOn));
+    musicBtn.setAttribute('aria-label', musicOn ? '关掉音乐 · Mute the music' : '打开音乐 · Play the music');
+  }
+  paint();
+  // Inside the homepage, the parent already owns the one track. This page must not start another.
+  if (embedded) {
+    musicBtn.addEventListener('click', function () {
+      parent.postMessage({ type: 'hd-music-toggle' }, location.origin);
+    });
+    window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin || !e.data || e.data.type !== 'hd-music-state') return;
+      musicOn = !!e.data.on;
+      paint();
+    });
+    return;
+  }
   var music = document.createElement('audio');
   music.id = 'music';
   music.loop = true;
   music.preload = 'none';
   music.volume = 0.7;
   document.body.appendChild(music);
-  var musicOn = true;
-  try { musicOn = localStorage.getItem('hd-music') !== '0'; } catch (e) {}
   function savePref() { try { localStorage.setItem('hd-music', musicOn ? '1' : '0'); } catch (e) {} }
   function saveTime() {
     try { if (music.currentTime > 0.25) sessionStorage.setItem('hd-music-t', String(music.currentTime)); } catch (e) {}
@@ -162,10 +188,6 @@
       var t = Number(sessionStorage.getItem('hd-music-t'));
       if (t > 0.25 && isFinite(t) && (!music.duration || t < music.duration - 0.3)) music.currentTime = t;
     } catch (e) {}
-  }
-  function paint() {
-    musicBtn.setAttribute('aria-pressed', String(!musicOn));
-    musicBtn.setAttribute('aria-label', musicOn ? '关掉音乐 · Mute the music' : '打开音乐 · Play the music');
   }
   function ensure() {
     if (music.getAttribute('src')) return;

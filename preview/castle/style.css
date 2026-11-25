@@ -157,7 +157,7 @@ html.softui .top,html.softui .bar,html.softui .foot{animation:castle-ui-in .6s e
   padding:calc(var(--pad) + 4px) var(--pad) 0;padding-top:max(calc(var(--pad) + 4px),env(safe-area-inset-top));pointer-events:none}
 .top a,.top button{pointer-events:auto}
 .wordmark{justify-self:start;display:flex;align-items:baseline;color:var(--gold-hi);padding:11px 18px 12px;border-radius:999px}
-.wm-en{font:500 18px/1 var(--serif);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
+.wm-en{font:400 18px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;white-space:nowrap}
 .nav{display:flex;gap:2px;padding:5px;border-radius:999px}
 .nav a{position:relative;padding:11px 16px;border-radius:999px;font:400 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--gold-hi);
   transition:background-color .4s ease,color .4s ease}

@@ -307,7 +307,7 @@ export const CHILD_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uTex;
 uniform vec2 uTexel;
-uniform float uAlpha, uMirror, uH, uDirect;
+uniform float uAlpha, uMirror, uH, uDirect, uCut;
 in vec2 vUv; in float vY;
 out vec4 o;
 float ss(float a,float b,float x){ float t=clamp((x-a)/(b-a),0.,1.); return t*t*(3.-2.*t); }
@@ -317,7 +317,8 @@ float key(vec2 uv){
   // On skin the red runs well ahead of the green, so the figure stays.
   float gap=abs(c.r-c.g);
   float gold=ss(.48,.64,min(c.r,c.g))*ss(.48,.28,c.b)*ss(.25,.08,gap);
-  return (1.-ss(.08,.26,c.g-max(c.r,c.b)))*(1.-gold);
+  float lead=c.g-max(c.r,c.b);
+  return (1.-ss(uCut,uCut+.18,lead))*(1.-gold);
 }
 void main(){
   if(vY<-.005) discard;
