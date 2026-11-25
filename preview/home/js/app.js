@@ -11,13 +11,16 @@
 // half-float buffer, with a mirrored, blurred copy for the floor, a mip-chain bloom, and a
 // final tone-mapping pass.
 
-import { StoryView } from './story.js';
-import { clamp, smooth, damp, mulberry } from './math.js';
-import { createGLHelpers } from './gl.js';
-import { loadCatalog } from './catalog.js';
-import { createPhotoArray, streamTextures } from './photos.js';
-import { buildStories, NF, STREAM_TH, streamLayer } from './stories.js';
-import { IDLE, TOUCHES, DROPS, FIBRE_VS, FIBRE_FS, FLOOR_VS, FLOOR_FS, CHILD_VS, CHILD_FS, POST_VS, DOWN_FS, UP_FS, BLUR_FS, COMPOSITE_FS } from './shaders.js';
+// HTML is not cached. CSS and JS keep one address for a day, so this whole module
+// chain, the stylesheets, and the castle entry share ?v=70a1901. Bump that query
+// together when any of those files change. The films and the Jost file stay put.
+import { StoryView } from './story.js?v=70a1901';
+import { clamp, smooth, damp, mulberry } from './math.js?v=70a1901';
+import { createGLHelpers } from './gl.js?v=70a1901';
+import { loadCatalog } from './catalog.js?v=70a1901';
+import { createPhotoArray, streamTextures } from './photos.js?v=70a1901';
+import { buildStories, NF, STREAM_TH, streamLayer } from './stories.js?v=70a1901';
+import { IDLE, TOUCHES, DROPS, FIBRE_VS, FIBRE_FS, FLOOR_VS, FLOOR_FS, CHILD_VS, CHILD_FS, POST_VS, DOWN_FS, UP_FS, BLUR_FS, COMPOSITE_FS } from './shaders.js?v=70a1901';
 
 const canvas = document.getElementById('stream');
 const CAPTURE = new URLSearchParams(location.search).has('capture');
@@ -1124,12 +1127,19 @@ function publishPortal() {
   };
   return portal;
 }
+function castlePageURL() {
+  const u = new URL('../castle/', document.baseURI);
+  u.searchParams.set('arrived', '1');
+  u.searchParams.set('veil', '1');
+  u.searchParams.set('v', '70a1901');
+  return u;
+}
 function prefetchCastle() {
   if (gate.active) return;
   const files = [
-    ['../castle/', 'document'],
-    ['../castle/castle.js', 'script'],
-    ['../castle/style.css', 'style'],
+    [castlePageURL().href, 'document'],
+    ['../castle/castle.js?v=70a1901', 'script'],
+    ['../castle/style.css?v=70a1901', 'style'],
     ['../castle/assets/world.svg', 'image'],
     ['../castle/assets/arrive-front.jpg', 'image'],
     ['../castle/assets/arrive-front-phone.jpg', 'image'],
@@ -1223,10 +1233,7 @@ function warmCastle() {
   if (!liveCastleOk() || gate.active) return;
   const frame = castleFrame();
   if (!frame || frame.getAttribute('src')) return;
-  const u = new URL('../castle/', document.baseURI);
-  u.searchParams.set('arrived', '1');
-  u.searchParams.set('veil', '1');
-  frame.src = u.href;
+  frame.src = castlePageURL().href;
 }
 function castleFrame() {
   return document.getElementById('castle-frame');
@@ -1248,10 +1255,7 @@ function armCastleView() {
     return;
   }
   if (!frame || frame.getAttribute('src')) return;
-  const u = new URL('../castle/', document.baseURI);
-  u.searchParams.set('arrived', '1');
-  u.searchParams.set('veil', '1');
-  frame.src = u.href;
+  frame.src = castlePageURL().href;
 }
 function tellCastle(message) {
   const frame = castleFrame();
@@ -1265,10 +1269,7 @@ function revealCastle() {
   // The homepage document, and its one audio element, stay. The castle view is the iframe.
   if (!gate.live && frame && !frame.getAttribute('src')) {
     sleeping = true;
-    const u = new URL('../castle/', document.baseURI);
-    u.searchParams.set('arrived', '1');
-    u.searchParams.set('veil', '1');
-    frame.src = u.href;
+    frame.src = castlePageURL().href;
   } else {
     sleeping = true;
     tellCastle({ type: 'hd-show-ui' });

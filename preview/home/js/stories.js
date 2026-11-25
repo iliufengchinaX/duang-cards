@@ -1,4 +1,4 @@
-import { clamp, mod, mulberry } from './math.js';
+import { clamp, mod, mulberry } from './math.js?v=70a1901';
 export const NF = 2400;
 export const MAX_CHAPTERS = 8;
 
