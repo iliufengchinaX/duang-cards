@@ -65,7 +65,30 @@ const rng = mulberry(0x2545f491);
 
 // ────────────────────────────────────────────────────────────── state
 
-let W = innerWidth, H = innerHeight, DPR = Math.min(devicePixelRatio || 1, 2), PW = 1, PH = 1;
+const root = document.documentElement;
+const MQ_COMPACT_IN = 900, MQ_COMPACT_OUT = 940;
+const MQ_NARROW_IN = 640, MQ_NARROW_OUT = 680;
+const LAYOUT_W_EPS = 2;       // ignore sub-pixel / 1–2px layout jitter
+const LAYOUT_H_REALLOC = 100; // ignore iOS URL-bar height jitters unless significant
+const RESIZE_DEBOUNCE_MS = 180;
+const ORIENT_DEBOUNCE_MS = 260;
+
+function layoutSize() {
+  return {
+    w: Math.max(1, Math.round(root.clientWidth || innerWidth || 1)),
+    h: Math.max(1, Math.round(root.clientHeight || innerHeight || 1)),
+  };
+}
+function isVisualZoomed() {
+  const vv = window.visualViewport;
+  return !!(vv && Math.abs((vv.scale || 1) - 1) > 0.02);
+}
+
+const initSize = layoutSize();
+let W = initSize.w, H = initSize.h, DPR = Math.min(devicePixelRatio || 1, 2), PW = 1, PH = 1;
+let isCompact = null, isNarrow = null;
+let gestureActive = false;
+let resizeTimer = 0, resizeDeferred = false, resizeForce = false;
 let CW = 18, SPACING = CW / NF, PHOTO_W = 0.8 * SPACING, SLOT = 1.9 * PHOTO_W;
 let stories = [], photos = [], atlases = [];
 const fib = {
@@ -93,6 +116,25 @@ let drag = null, pinch = null;
 const touches = new Map();
 let view = null, lsBeforeStory = null;
 
+function applyLayoutBreakpoints(width, force = false) {
+  if (!force && (pinch || touches.size >= 2 || gestureActive || isVisualZoomed())) return;
+  const nextCompact = isCompact === null
+    ? width <= MQ_COMPACT_IN
+    : (isCompact ? width <= MQ_COMPACT_OUT : width <= MQ_COMPACT_IN);
+  const nextNarrow = isNarrow === null
+    ? width <= MQ_NARROW_IN
+    : (isNarrow ? width <= MQ_NARROW_OUT : width <= MQ_NARROW_IN);
+  if (nextCompact !== isCompact) {
+    isCompact = nextCompact;
+    root.classList.toggle('mq-compact', isCompact);
+  }
+  if (nextNarrow !== isNarrow) {
+    isNarrow = nextNarrow;
+    root.classList.toggle('mq-narrow', isNarrow);
+  }
+}
+applyLayoutBreakpoints(W, true);
+
 // From afar the curtain fills the whole screen: its top is out of sight above, and the eye
 // sits low enough that the water in front of it reads as a platform.
 const FRAME_TOP = CH - 3.6, FRAME_BOTTOM = -2.9;
@@ -104,7 +146,7 @@ const LS_MIN = () => Math.log(fitScale());
 // on green) in which he trots across the frame and catches the light with one hand or both.
 // The track below is where his feet, his hand and the top of him are in that frame, sampled
 // from the film. At rest he stands on the center line.
-const NARROW = innerWidth < 640;
+const NARROW = W < 640;
 const CHILD = { x: 0, z: 0.75, h: NARROW ? 1.9 : 2.15, feetV: 0.97, homeU: 0.496, aspect: 1280 / 720 };
 CHILD.frameH = CHILD.h / 0.94;
 CHILD.frameW = CHILD.frameH * CHILD.aspect;
@@ -525,15 +567,37 @@ document.addEventListener('click', e => {
 });
 addEventListener('pageshow', () => body.classList.remove('leaving'));
 
+// Suppress native browser pinch-zoom and document gestures; in-scene pinch on #stream stays active.
+document.addEventListener('touchmove', e => {
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+document.addEventListener('gesturestart', e => {
+  gestureActive = true;
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+document.addEventListener('gesturechange', e => {
+  gestureActive = true;
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+document.addEventListener('gestureend', e => {
+  gestureActive = false;
+  if (e.cancelable) e.preventDefault();
+  if (resizeDeferred) scheduleResize(RESIZE_DEBOUNCE_MS, resizeForce);
+}, { passive: false });
+
 canvas.addEventListener('pointerdown', e => {
   if (gate.active || !view) return;
   canvas.setPointerCapture(e.pointerId); markInput();
   touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (touches.size === 2) {
     const [a, b] = [...touches.values()];
-    pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), ls: cam.lsT }; drag = null;
+    pinch = { dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), ls: cam.lsT };
+    drag = null;
+    tween = null;
+    body.classList.remove('dragging');
     return;
   }
+  if (touches.size > 2) return;
   const p = unproject(e.clientX, e.clientY);
   touchWater(e.clientX, e.clientY, true);
   drag = { sx: e.clientX, sy: e.clientY, t: performance.now(), moved: false, wx: p.x, wy: p.y, touch: e.pointerType !== 'mouse' };
@@ -617,7 +681,8 @@ canvas.addEventListener('pointermove', e => {
   markInput();
   if (pinch && touches.size === 2) {
     const [a, b] = [...touches.values()];
-    const target = clamp(pinch.ls + Math.log(Math.hypot(a.x - b.x, a.y - b.y) / pinch.dist), LS_MIN(), LS_MAX());
+    const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+    const target = clamp(pinch.ls + Math.log(dist / pinch.dist), LS_MIN(), LS_MAX());
     zoomBy(target - cam.lsT, (a.x + b.x) / 2, (a.y + b.y) / 2);
     return;
   }
@@ -628,6 +693,7 @@ canvas.addEventListener('pointermove', e => {
 function endPointer(e) {
   touches.delete(e.pointerId);
   if (touches.size < 2) pinch = null;
+  if (touches.size === 0 && resizeDeferred) scheduleResize(RESIZE_DEBOUNCE_MS, resizeForce);
   body.classList.remove('dragging');
   if (!drag) return;
   const d = drag; drag = null;
@@ -643,6 +709,11 @@ function endPointer(e) {
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('lostpointercapture', e => {
+  touches.delete(e.pointerId);
+  if (touches.size < 2) pinch = null;
+  if (touches.size === 0 && resizeDeferred) scheduleResize(RESIZE_DEBOUNCE_MS, resizeForce);
+});
 canvas.addEventListener('pointerleave', () => { pointer.inside = false; });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -664,20 +735,100 @@ addEventListener('keydown', e => {
   else if (k === ' ') { e.preventDefault(); setPaused(!paused); }
 });
 
-function resize() {
-  W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 2);
-  PW = Math.round(W * DPR); PH = Math.round(H * DPR);
-  canvas.width = PW; canvas.height = PH;
+function resize(force = false) {
+  const { w, h } = layoutSize();
+  const hadRT = !!RT;
+  if (hadRT) {
+    if (pinch || touches.size >= 2 || gestureActive || isVisualZoomed()) {
+      resizeDeferred = true;
+      if (force) resizeForce = true;
+      return;
+    }
+    const dw = Math.abs(w - W);
+    const dh = Math.abs(h - H);
+    if (force) {
+      if (dw <= LAYOUT_W_EPS && dh <= LAYOUT_W_EPS) { resizeDeferred = false; resizeForce = false; return; }
+    } else {
+      if (dw <= LAYOUT_W_EPS && dh <= LAYOUT_H_REALLOC) { resizeDeferred = false; return; }
+    }
+  }
+
+  const preserveZoom = hadRT && stories.length > 0;
+  let prevZt = null, prevCurZt = null, prevTweenToZt = null, prevStoryZt = null;
+  if (preserveZoom) {
+    const oldMin = LS_MIN(), oldMax = LS_MAX(), oldSpan = oldMax - oldMin;
+    if (oldSpan > 1e-6) {
+      prevZt = clamp((cam.lsT - oldMin) / oldSpan, 0, 1);
+      prevCurZt = clamp((cam.ls - oldMin) / oldSpan, 0, 1);
+      if (tween) prevTweenToZt = clamp((tween.to - oldMin) / oldSpan, 0, 1);
+      if (lsBeforeStory != null) prevStoryZt = clamp((lsBeforeStory - oldMin) / oldSpan, 0, 1);
+    }
+  }
+
+  W = w;
+  H = h;
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  PW = Math.max(1, Math.round(W * DPR));
+  PH = Math.max(1, Math.round(H * DPR));
+  if (canvas.width !== PW || canvas.height !== PH) {
+    canvas.width = PW;
+    canvas.height = PH;
+  }
   if (RT) { freeTarget(RT.scene); RT.refl.forEach(freeTarget); RT.bloom.forEach(freeTarget); }
   RT = {
     scene: target(PW, PH),
     refl: [target(PW / 2, PH / 2), target(PW / 2, PH / 2)],
     bloom: Array.from({ length: 6 }, (_, i) => target(PW / 2 ** (i + 1), PH / 2 ** (i + 1))),
   };
-  if (stories.length) cam.lsT = clamp(cam.lsT, LS_MIN(), LS_MAX());
+  applyLayoutBreakpoints(W, !hadRT);
+  if (preserveZoom && prevZt != null) {
+    const newMin = LS_MIN(), newMax = LS_MAX(), newSpan = newMax - newMin;
+    cam.lsT = clamp(newMin + prevZt * newSpan, newMin, newMax);
+    cam.ls = clamp(newMin + prevCurZt * newSpan, newMin, newMax);
+    if (tween && prevTweenToZt != null) {
+      tween.from = cam.ls;
+      tween.to = clamp(newMin + prevTweenToZt * newSpan, newMin, newMax);
+    }
+    if (lsBeforeStory != null && prevStoryZt != null) {
+      lsBeforeStory = clamp(newMin + prevStoryZt * newSpan, newMin, newMax);
+    }
+    if (!gate.active) anchor = null;
+  }
   resizeDust();
+  resizeDeferred = false;
 }
-addEventListener('resize', () => { if (RT) resize(); });
+function scheduleResize(delay = RESIZE_DEBOUNCE_MS, force = false) {
+  if (!RT) return;
+  if (force) resizeForce = true;
+  if (pinch || touches.size >= 2 || gestureActive || isVisualZoomed()) {
+    resizeDeferred = true;
+    clearTimeout(resizeTimer);
+    resizeTimer = 0;
+    return;
+  }
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resizeTimer = 0;
+    const f = resizeForce;
+    resizeForce = false;
+    if (!RT) return;
+    if (pinch || touches.size >= 2 || gestureActive || isVisualZoomed()) {
+      resizeDeferred = true;
+      return;
+    }
+    resize(f);
+  }, delay);
+}
+addEventListener('resize', () => scheduleResize(RESIZE_DEBOUNCE_MS, false));
+addEventListener('orientationchange', () => scheduleResize(ORIENT_DEBOUNCE_MS, true));
+window.visualViewport?.addEventListener('resize', () => {
+  if (isVisualZoomed()) {
+    clearTimeout(resizeTimer);
+    resizeTimer = 0;
+  } else if (resizeDeferred) {
+    scheduleResize(RESIZE_DEBOUNCE_MS, resizeForce);
+  }
+});
 
 // ────────────────────────────────────────────────────────────── frame
 
@@ -1217,7 +1368,7 @@ function holdChildPin() {
   cam.y = wy - (1 - sy / H * 2) * d / F;
 }
 function liveCastleOk() {
-  return innerWidth >= 800 && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  return layoutSize().w >= 800 && matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
 function warmCastle() {
   if (!liveCastleOk() || gate.active) return;
